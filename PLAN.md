@@ -50,10 +50,14 @@ This plan tracks the requirements in the pasted goal. `SOURCE_DISCOVERY.md` and
 - [x] Python package installation, CLI entry point, shell syntax, Python
   compilation, YAML parsing, and GitHub Actions validation with actionlint
   1.7.12 verified locally.
-- [ ] Publish to a public GitHub repository, add the `DISCORD_WEBHOOK_URL`
-  repository secret, run manual smoke, and perform the first Actions seed.
-  This final external activation requires valid GitHub authentication and the
-  user's Discord webhook; the current `gh` credential is invalid.
+- [x] Publish the `main` branch to the public repository
+  `https://github.com/melvincojon/auto-app`.
+- [x] Run the GitHub-hosted manual smoke workflow. Run `34280948799` passed
+  installation, all automated tests, and all 16 production source checks using
+  `actions/checkout@v7` and `actions/setup-python@v7`.
+- [ ] Add the `DISCORD_WEBHOOK_URL` repository secret and perform the first
+  hosted monitor run. This final activation requires the user's Discord
+  webhook value; no Actions secret is currently configured.
 
 ## Maintenance rule
 
