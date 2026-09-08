@@ -22,6 +22,8 @@ This plan tracks the requirements in the pasted goal. `SOURCE_DISCOVERY.md` and
   `jobId`, seed each company independently, and alert later jobs once.
 - [x] Implement a notifier abstraction with concise Discord job and source
   health messages; read the webhook only from `DISCORD_WEBHOOK_URL`.
+- [x] Add an isolated `test-notification` manual Actions mode that sends one
+  harmless Discord message without polling sources or loading/modifying state.
 - [x] Isolate company failures and detect non-200 responses, rate limits,
   malformed content, schema changes, suspicious empty inventories, pagination
   failures, bootstrap failures, and configuration drift.

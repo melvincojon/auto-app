@@ -7,13 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Run the monitor or a read-only production smoke test"
+        description: "Choose monitor, source smoke test, or Discord notification test"
         required: true
         default: monitor
         type: choice
         options:
           - monitor
           - smoke
+          - test-notification
 
 permissions:
   contents: write
@@ -45,6 +46,12 @@ jobs:
       - name: Production source smoke tests
         if: github.event_name == 'workflow_dispatch' && inputs.mode == 'smoke'
         run: job-monitor smoke
+
+      - name: Test Discord notification
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'test-notification'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: job-monitor test-notification
 
       - name: Restore durable state
         if: github.event_name == 'schedule' || inputs.mode == 'monitor'

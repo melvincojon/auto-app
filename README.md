@@ -68,7 +68,7 @@ The first successful run for each company seeds every current provider job ID an
 4. Run **New-grad job monitor** manually with mode `smoke`. Confirm all configured sources pass.
 5. Run it once with mode `monitor`. That run safely seeds existing jobs and creates the dedicated `monitor-state` branch.
 
-The schedule runs at minutes 7, 17, 27, 37, 47, and 57 from 5:00 AM through midnight-adjacent 11:57 PM in `America/New_York`, every day. The off-minute schedule reduces exposure to GitHub’s top-of-hour congestion. `workflow_dispatch` supports both a normal poll and a notification-free smoke test.
+The schedule runs at minutes 7, 17, 27, 37, 47, and 57 from 5:00 AM through midnight-adjacent 11:57 PM in `America/New_York`, every day. The off-minute schedule reduces exposure to GitHub’s top-of-hour congestion. `workflow_dispatch` supports a normal poll, a notification-free source smoke test, and an isolated Discord notification test.
 
 State is stored as a single JSON tree on the dedicated `monitor-state` branch using Git plumbing; the workflow never checks that branch out or adds state commits to the main branch. A concurrency group serializes polls. State is saved even when a later source reports a failure, so successfully delivered alerts do not repeat. Do not branch-protect `monitor-state` in a way that prevents `github-actions[bot]` from updating it.
 
@@ -77,6 +77,23 @@ GitHub may delay scheduled jobs during high load, and scheduled workflows in ina
 ## Notifications and source health
 
 Job notifications contain the match category, company, title, location, match reason, provider date when available, and the best application/job URL. Discord mentions are disabled.
+
+To verify the Discord webhook without polling any company or touching monitor
+state, open **Actions → New-grad job monitor → Run workflow** and select
+`test-notification`. It sends exactly one message:
+
+> ✅ New-grad job monitor notification test successful.
+
+The same test can be dispatched from the GitHub CLI:
+
+```bash
+gh workflow run "New-grad job monitor" \
+  --repo melvincojon/auto-app \
+  -f mode=test-notification
+```
+
+This mode still runs the automated test suite first, but skips production
+source smoke tests, source polling, state restore, and state persistence.
 
 HTTP requests use a descriptive user agent, bounded exponential backoff for rate limits and transient 5xx responses, and strict structure/content validation. Each company is isolated. Non-200 responses, rate limiting, malformed content, schema drift, suspicious empty inventories, pagination failures, bootstrap/session failures, and versioned-contract failures become Discord health warnings and a failed Actions run after all other companies are checked.
 

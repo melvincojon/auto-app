@@ -19,14 +19,25 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--state", default=".state/jobs.json")
     run.add_argument("--dry-run", action="store_true", help="print instead of using Discord")
     subparsers.add_parser("smoke", help="verify every configured production source")
+    subparsers.add_parser(
+        "test-notification", help="send one harmless Discord webhook test message"
+    )
     return result
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
-    companies = load_companies(args.config)
     http = HttpClient()
     try:
+        if args.command == "test-notification":
+            webhook = os.environ.get("DISCORD_WEBHOOK_URL")
+            if not webhook:
+                raise SystemExit("DISCORD_WEBHOOK_URL is required")
+            DiscordNotifier(webhook, http).notify_test()
+            print("Discord notification test sent successfully.")
+            return 0
+
+        companies = load_companies(args.config)
         if args.command == "smoke":
             report = run_smoke(companies, http)
             print(f"Smoke: {report.checked_companies} passed, {len(report.warnings)} failed")

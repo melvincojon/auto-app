@@ -7,6 +7,17 @@ from .http import HttpClient
 from .models import HealthWarning, Job, Match
 
 
+NOTIFICATION_TEST_MESSAGE = "✅ New-grad job monitor notification test successful."
+
+
+def discord_test_payload() -> dict:
+    return {
+        "content": NOTIFICATION_TEST_MESSAGE,
+        "username": "New-grad job monitor",
+        "allowed_mentions": {"parse": []},
+    }
+
+
 def discord_job_payload(job: Job, match: Match) -> dict:
     url = job.apply_url or job.job_url
     fields = [
@@ -47,6 +58,9 @@ def discord_health_payload(warning: HealthWarning) -> dict:
 
 
 class Notifier:
+    def notify_test(self) -> None:
+        raise NotImplementedError
+
     def notify_job(self, job: Job, match: Match) -> None:
         raise NotImplementedError
 
@@ -71,8 +85,14 @@ class DiscordNotifier(Notifier):
     def notify_health(self, warning: HealthWarning) -> None:
         self._send(discord_health_payload(warning))
 
+    def notify_test(self) -> None:
+        self._send(discord_test_payload())
+
 
 class ConsoleNotifier(Notifier):
+    def notify_test(self) -> None:
+        print(NOTIFICATION_TEST_MESSAGE)
+
     def notify_job(self, job: Job, match: Match) -> None:
         print(f"{match.category.value} | {job.company} | {job.title} | {job.location or '-'} | {job.apply_url or job.job_url}")
 
