@@ -1,0 +1,246 @@
+# Only sources whose exact tenant/board identifier, response contract, and required
+# monitor fields passed a direct HTTP runtime smoke test are included.
+version: 1
+verified_at: "2026-09-08"
+companies:
+  - company: Amazon
+    class: B
+    adapter: amazon_jobs_json
+    careers_url: https://www.amazon.jobs/en/search
+    endpoint: https://www.amazon.jobs/en/search.json
+    method: GET
+    params:
+      sort: recent
+    pagination:
+      type: offset
+      offset_param: offset
+      limit_param: result_limit
+      default_limit: 100
+
+  - company: Bloomberg
+    class: C
+    adapter: avature_html
+    careers_url: https://bloomberg.avature.net/en_US/careers/SearchJobs
+    endpoint: https://bloomberg.avature.net/en_US/careers/SearchJobs/
+    method: GET
+    pagination:
+      type: offset
+      offset_param: jobOffset
+      limit_param: jobRecordsPerPage
+      default_limit: 12
+    detail:
+      source: returned_job_detail_url
+      format: html
+
+  - company: Microsoft
+    class: B
+    adapter: eightfold_pcsx_session
+    careers_url: https://apply.careers.microsoft.com/careers
+    endpoint: https://apply.careers.microsoft.com/api/pcsx/search
+    method: GET
+    session_bootstrap:
+      url: https://apply.careers.microsoft.com/careers
+      csrf_meta_name: _csrf
+      retain_cookies: true
+      request_header: x-csrf-token
+      referer: https://apply.careers.microsoft.com/careers
+    params:
+      domain: microsoft.com
+      num: 10
+    pagination:
+      type: offset
+      offset_param: start
+      default_limit: 10
+    detail:
+      endpoint: https://apply.careers.microsoft.com/api/pcsx/position_details
+      id_param: position_id
+      params:
+        domain: microsoft.com
+        hl: en
+      format: json
+
+  - company: Datadog
+    class: A
+    adapter: greenhouse
+    careers_url: https://careers.datadoghq.com/all-jobs/
+    endpoint: https://boards-api.greenhouse.io/v1/boards/datadog/jobs
+    method: GET
+    params:
+      content: true
+    pagination:
+      type: none
+
+  - company: Snowflake
+    class: A
+    adapter: ashby
+    careers_url: https://careers.snowflake.com/us/en/search-results
+    endpoint: https://api.ashbyhq.com/posting-api/job-board/snowflake
+    method: GET
+    pagination:
+      type: none
+
+  - company: Robinhood
+    class: A
+    adapter: greenhouse
+    careers_url: https://careers.robinhood.com/
+    endpoint: https://boards-api.greenhouse.io/v1/boards/robinhood/jobs
+    method: GET
+    params:
+      content: true
+    pagination:
+      type: none
+
+  - company: Block
+    class: A
+    adapter: greenhouse
+    careers_url: https://block.xyz/careers/jobs
+    endpoint: https://boards-api.greenhouse.io/v1/boards/block/jobs
+    method: GET
+    params:
+      content: true
+    pagination:
+      type: none
+
+  - company: Coinbase
+    class: A
+    adapter: greenhouse
+    careers_url: https://www.coinbase.com/careers/positions
+    endpoint: https://boards-api.greenhouse.io/v1/boards/coinbase/jobs
+    method: GET
+    params:
+      content: true
+    pagination:
+      type: none
+
+  - company: Intuit
+    class: C
+    adapter: radancy_html_jsonld
+    careers_url: https://jobs.intuit.com/search-jobs
+    endpoint: https://jobs.intuit.com/search-jobs
+    method: GET
+    pagination:
+      type: page
+      page_param: p
+      starts_at: 1
+      page_size: 15
+    detail:
+      source: returned_job_detail_url
+      format: html_jsonld
+
+  - company: Meta
+    class: C
+    adapter: meta_relay_jsonld
+    careers_url: https://www.metacareers.com/jobsearch/
+    endpoint: https://www.metacareers.com/api/graphql/
+    method: POST
+    session_bootstrap:
+      url: https://www.metacareers.com/jobsearch/
+      token_module: LSD
+      token_field: token
+      form_field: lsd
+      request_header: x-fb-lsd
+      referer: https://www.metacareers.com/jobsearch/
+    request:
+      encoding: application/x-www-form-urlencoded
+      response_format: json
+      response_content_type: text/html; charset=utf-8
+      friendly_name: CareersJobSearchResultsV2DataQuery
+      doc_id: "27129360303422352"
+      variables:
+        isLoggedIn: false
+        search_input: {}
+        viewasUserID: null
+    pagination:
+      type: none
+      note: all_jobs is returned as one complete array; UI pages it client-side
+    detail:
+      url_template: https://www.metacareers.com/profile/job_details/{id}/
+      format: html_jsonld
+
+  - company: Databricks
+    class: A
+    adapter: greenhouse
+    careers_url: https://www.databricks.com/company/careers/open-positions
+    endpoint: https://boards-api.greenhouse.io/v1/boards/databricks/jobs
+    method: GET
+    params:
+      content: true
+    pagination:
+      type: none
+
+  - company: Airbnb
+    class: A
+    adapter: greenhouse
+    careers_url: https://careers.airbnb.com/positions/
+    endpoint: https://boards-api.greenhouse.io/v1/boards/airbnb/jobs
+    method: GET
+    params:
+      content: true
+    pagination:
+      type: none
+
+  - company: Netflix
+    class: B
+    adapter: eightfold_apply_v2
+    careers_url: https://explore.jobs.netflix.net/careers
+    endpoint: https://explore.jobs.netflix.net/api/apply/v2/jobs
+    method: GET
+    params:
+      domain: netflix.com
+      num: 10
+    pagination:
+      type: offset
+      offset_param: start
+      limit_param: num
+      default_limit: 10
+    detail:
+      url_template: https://explore.jobs.netflix.net/api/apply/v2/jobs/{id}
+      params:
+        domain: netflix.com
+      format: json
+
+  - company: Notion
+    class: A
+    adapter: ashby
+    careers_url: https://www.notion.com/careers
+    endpoint: https://api.ashbyhq.com/posting-api/job-board/notion
+    method: GET
+    pagination:
+      type: none
+
+  - company: Ramp
+    class: A
+    adapter: ashby
+    careers_url: https://ramp.com/careers/
+    endpoint: https://api.ashbyhq.com/posting-api/job-board/ramp
+    method: GET
+    pagination:
+      type: none
+
+  - company: Rippling
+    class: B
+    adapter: rippling_algolia_next_data
+    careers_url: https://www.rippling.com/careers/open-roles
+    endpoint: https://6FNAX3TBEF-dsn.algolia.net/1/indexes/*/queries
+    method: POST
+    headers:
+      content-type: application/json
+      x-algolia-application-id: 6FNAX3TBEF
+      # Public search-only key shipped by Rippling's current careers bundle.
+      x-algolia-api-key: 416caa4690f002ff6fe4a2097623640b
+    request:
+      index_name: careers_en-US_production
+      params_encoding: urlencoded_string
+      default_hits_per_page: 100
+    pagination:
+      type: page
+      page_param: page
+      starts_at: 0
+      page_size_param: hitsPerPage
+    identity:
+      record_id: jobId
+      note: deduplicate location-specific Algolia objectIDs by jobId
+    detail:
+      source: returned_url
+      format: next_data_json
+      json_path: props.pageProps.apiData.jobPost
