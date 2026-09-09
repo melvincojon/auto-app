@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .errors import NotificationError
 from .http import HttpClient
@@ -8,6 +10,31 @@ from .models import HealthWarning, Job, Match
 
 
 NOTIFICATION_TEST_MESSAGE = "✅ New-grad job monitor notification test successful."
+
+
+def _format_posted_at(posted_at: str) -> str:
+    raw_value = str(posted_at)
+
+    try:
+        posted_date = date.fromisoformat(raw_value)
+    except (TypeError, ValueError):
+        pass
+    else:
+        return f"{posted_date.strftime('%b')} {posted_date.day}, {posted_date.year}"
+
+    try:
+        posted_datetime = datetime.fromisoformat(raw_value.replace("Z", "+00:00"))
+        if posted_datetime.tzinfo is not None:
+            posted_datetime = posted_datetime.astimezone(ZoneInfo("America/New_York"))
+
+        hour = posted_datetime.strftime("%I").lstrip("0")
+        timezone_label = " ET" if posted_datetime.tzinfo is not None else ""
+        return (
+            f"{posted_datetime.strftime('%b')} {posted_datetime.day}, {posted_datetime.year} "
+            f"at {hour}:{posted_datetime.strftime('%M %p')}{timezone_label}"
+        )
+    except (OSError, OverflowError, TypeError, ValueError, ZoneInfoNotFoundError):
+        return raw_value[:100]
 
 
 def discord_test_payload() -> dict:
@@ -26,7 +53,14 @@ def discord_job_payload(job: Job, match: Match) -> dict:
         {"name": "Why", "value": match.reason[:1024], "inline": False},
     ]
     if job.posted_at:
-        fields.insert(2, {"name": "Posted", "value": str(job.posted_at)[:100], "inline": True})
+        fields.insert(
+            2,
+            {
+                "name": "Posted",
+                "value": _format_posted_at(job.posted_at),
+                "inline": True,
+            },
+        )
     return {
         "username": "New-grad job monitor",
         "allowed_mentions": {"parse": []},

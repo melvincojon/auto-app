@@ -1,6 +1,7 @@
 import json
 
 import httpx
+import pytest
 
 from job_monitor.cli import main
 from job_monitor.models import HealthWarning, Job, Match, MatchCategory
@@ -24,9 +25,63 @@ def test_job_notification_is_concise_and_complete():
     assert embed["url"] == "https://apply"
     assert "NEW_GRAD_MATCH" in embed["description"]
     rendered = str(payload)
-    for text in ("Acme", "Software Engineer", "New York", "2026-09-08", "new-graduate"):
+    for text in ("Acme", "Software Engineer", "New York", "Sep 8, 2026", "new-graduate"):
         assert text in rendered
     assert payload["allowed_mentions"] == {"parse": []}
+
+
+@pytest.mark.parametrize(
+    ("posted_at", "expected"),
+    [
+        ("2026-09-09T20:32:00Z", "Sep 9, 2026 at 4:32 PM ET"),
+        ("2026-01-09T20:32:00+00:00", "Jan 9, 2026 at 3:32 PM ET"),
+        ("2026-09-09T17:30:00-07:00", "Sep 9, 2026 at 8:30 PM ET"),
+        ("2026-09-09", "Sep 9, 2026"),
+        ("2026-09-09T20:32:00", "Sep 9, 2026 at 8:32 PM"),
+    ],
+)
+def test_job_notification_formats_posted_at(posted_at, expected):
+    job = Job(
+        "Acme", "test", "1", "Engineer", None, None, posted_at, "https://job"
+    )
+
+    payload = discord_job_payload(
+        job, Match(MatchCategory.NEW_GRAD_MATCH, "new-graduate language")
+    )
+
+    posted_field = next(
+        field for field in payload["embeds"][0]["fields"] if field["name"] == "Posted"
+    )
+    assert posted_field == {"name": "Posted", "value": expected, "inline": True}
+    assert job.posted_at == posted_at
+
+
+def test_job_notification_uses_capped_raw_posted_at_when_unrecognized():
+    posted_at = "not-a-timestamp" * 20
+    job = Job(
+        "Acme", "test", "1", "Engineer", None, None, posted_at, "https://job"
+    )
+
+    payload = discord_job_payload(
+        job, Match(MatchCategory.NEW_GRAD_MATCH, "new-graduate language")
+    )
+
+    posted_field = next(
+        field for field in payload["embeds"][0]["fields"] if field["name"] == "Posted"
+    )
+    assert posted_field["value"] == posted_at[:100]
+
+
+def test_job_notification_omits_posted_field_when_missing():
+    job = Job("Acme", "test", "1", "Engineer", None, None, None, "https://job")
+
+    payload = discord_job_payload(
+        job, Match(MatchCategory.NEW_GRAD_MATCH, "new-graduate language")
+    )
+
+    assert all(
+        field["name"] != "Posted" for field in payload["embeds"][0]["fields"]
+    )
 
 
 def test_health_notification_contains_failure():
