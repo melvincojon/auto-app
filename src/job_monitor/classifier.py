@@ -18,7 +18,7 @@ _TECHNICAL_TITLE = re.compile(
     r"forward\s+deployed(?:\s+ai)?\s+engineer|applied\s+research\s+engineer|"
     r"machine\s+learning\s+engineer|ml\s+engineer|ai\s+engineer|"
     r"member\s+of\s+technical\s+staff|associate\s+(?:software\s+)?engineer|"
-    r"junior\s+(?:software\s+)?engineer|engineer\s*(?:[-–—]\s*)?i|"
+    r"junior\s+(?:software\s+)?engineer|"
     r"quantitative\s+developer|quant\s+developer|quantitative\s+technologist"
     r")\b",
     re.I,
@@ -49,6 +49,10 @@ _SENIOR_TITLE = re.compile(
     re.I,
 )
 _MEMBER_OF_TECHNICAL_STAFF = re.compile(r"\bmember\s+of\s+technical\s+staff\b", re.I)
+_SENIOR_MEMBER_OF_TECHNICAL_STAFF = re.compile(
+    r"\bmember\s+of\s+technical\s+staff\s*(?:[-–—]\s*)?(?:ii|iii|iv|2|3|4)\b",
+    re.I,
+)
 
 _GRADUATE_PROGRAM_TITLE = re.compile(
     r"\b(?:(?:202[67]|technology|university)\s+)?graduate\s+program(?:me)?\b|"
@@ -141,25 +145,36 @@ _INDIA_LOCATION = re.compile(
     re.I,
 )
 
-_EXPERIENCE_REQUIREMENT = re.compile(
-    r"(?:"
-    r"\b(?:minimum(?:\s+of)?|at\s+least)\s+(?:[2-9]|\d{2,})\+?\s+years?"
-    r"(?:\s+of)?\s+(?:non[ -]?internship\s+)?"
-    r"(?:(?:relevant|professional|industry|work|technical)\s+){0,3}"
-    r"(?:experience|engineering(?:\s+experience)?|software\s+(?:engineering|development))\b|"
-    r"\b(?:[2-9]|\d{2,})\+\s+years?(?:\s+of)?\s+"
-    r"(?:non[ -]?internship\s+)?(?:relevant\s+)?(?:professional\s+)?"
-    r"(?:software\s+(?:engineering|development)|engineering|industry|technical\s+pre[ -]?sales|"
-    r"professional\s+experience|relevant\s+(?:industry\s+)?experience)\b|"
-    r"\b(?:[2-9]|\d{2,})\+\s+(?:years?\s+)?(?:relevant\s+)?industry\s+experience\b|"
-    r"\b(?:[2-9]|\d{2,})\+\s+(?:years?\s+)?technical\s+pre[ -]?sales\b|"
-    r"\b(?:[2-9]|\d{2,})\s+years?(?:\s+of)?\s+"
-    r"(?:non[ -]?internship\s+)?(?:relevant\s+)?(?:professional\s+)?"
-    r"(?:software\s+(?:engineering|development)|engineering|industry|"
-    r"professional\s+experience|relevant\s+(?:industry\s+)?experience)\b"
-    r")",
-    re.I,
-)
+_EXPERIENCE_REQUIREMENTS = [
+    re.compile(
+        r"\b(?:minimum(?:\s+of)?|at\s+least)\s+(?:[2-9]|\d{2,})\+?\s+years?"
+        r"(?:\s+of)?\s+(?:non[ -]?internship\s+)?"
+        r"(?:(?:relevant|professional|industry|work|technical)\s+){0,3}"
+        r"(?:software\s+(?:engineering|development)(?:\s+experience)?|"
+        r"backend\s+engineering(?:\s+experience)?|engineering\s+experience|"
+        r"experience(?=\s*(?:required|preferred|[.;]|$)))",
+        re.I,
+    ),
+    re.compile(
+        r"\b(?:[2-9]|\d{2,})\+?\s+years?(?:\s+of)?\s+"
+        r"(?:non[ -]?internship\s+)?(?:(?:relevant|professional)\s+){0,2}"
+        r"(?:software\s+(?:engineering|development)(?:\s+experience)?|"
+        r"backend\s+engineering(?:\s+experience)?|engineering\s+experience|"
+        r"(?:work|industry|professional|relevant)\s+experience)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\b(?:[2-9]|\d{2,})\+?\s+years?\s+of\s+experience\s+in\s+"
+        r"(?:software\s+(?:engineering|development)|backend\s+engineering|engineering)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\b(?:[2-9]|\d{2,})\+?\s+years?\s+of\s+experience\s+"
+        r"(?:required|preferred)\b|"
+        r"\b(?:[2-9]|\d{2,})\+\s+(?:years?\s+)?technical\s+pre[ -]?sales\b",
+        re.I,
+    ),
+]
 _ALLOWED_EXPERIENCE_RANGE_PREFIX = re.compile(
     r"(?:\b0\s*(?:-|–|—|to)\s*|\bup\s+to\s*)$",
     re.I,
@@ -188,21 +203,22 @@ def _us_location_eligible(location: str | None) -> bool:
 
 
 def _requires_experienced_candidate(description: str) -> bool:
-    for match in _EXPERIENCE_REQUIREMENT.finditer(description):
-        prefix = description[max(0, match.start() - 12) : match.start()]
-        if _ALLOWED_EXPERIENCE_RANGE_PREFIX.search(prefix):
-            continue
-        before = max(description.rfind(mark, 0, match.start()) for mark in ".;\n•")
-        after_candidates = [
-            position
-            for mark in ".;\n•"
-            if (position := description.find(mark, match.end())) >= 0
-        ]
-        after = min(after_candidates, default=len(description))
-        context = description[before + 1 : after]
-        if _OTHER_PERSON_EXPERIENCE.search(context):
-            continue
-        return True
+    for pattern in _EXPERIENCE_REQUIREMENTS:
+        for match in pattern.finditer(description):
+            prefix = description[max(0, match.start() - 12) : match.start()]
+            if _ALLOWED_EXPERIENCE_RANGE_PREFIX.search(prefix):
+                continue
+            before = max(description.rfind(mark, 0, match.start()) for mark in ".;\n•")
+            after_candidates = [
+                position
+                for mark in ".;\n•"
+                if (position := description.find(mark, match.end())) >= 0
+            ]
+            after = min(after_candidates, default=len(description))
+            context = description[before + 1 : after]
+            if _OTHER_PERSON_EXPERIENCE.search(context):
+                continue
+            return True
     return False
 
 
@@ -210,7 +226,10 @@ def _has_explicit_seniority(title: str) -> bool:
     # "Staff" is part of the base MTS role name, not a level by itself. Any
     # seniority word elsewhere in the title remains visible and is rejected.
     title_without_mts = _MEMBER_OF_TECHNICAL_STAFF.sub("", title)
-    return bool(_SENIOR_TITLE.search(title_without_mts))
+    return bool(
+        _SENIOR_MEMBER_OF_TECHNICAL_STAFF.search(title)
+        or _SENIOR_TITLE.search(title_without_mts)
+    )
 
 
 def classify(job: Job) -> Match | None:

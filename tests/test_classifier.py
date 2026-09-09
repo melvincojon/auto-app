@@ -226,6 +226,49 @@ def test_member_of_technical_staff_seniority(title, expected):
 @pytest.mark.parametrize(
     "title",
     [
+        "Member of Technical Staff II",
+        "Member of Technical Staff III",
+        "Member of Technical Staff IV",
+        "Member of Technical Staff 2",
+        "Member of Technical Staff 3",
+        "Member of Technical Staff 4",
+    ],
+)
+def test_member_of_technical_staff_level_two_and_above_is_excluded(title):
+    assert classify(job(title)) is None
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Software Engineer I",
+        "Software Development Engineer I",
+        "SDE I",
+        "Backend Engineer I",
+    ],
+)
+def test_level_one_is_strong_only_for_relevant_roles(title):
+    result = classify(job(title))
+    assert result is not None
+    assert result.category == MatchCategory.NEW_GRAD_MATCH
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Hardware Test Engineer I",
+        "Network Engineer I",
+        "Manufacturing Engineer I",
+        "Systems Test Engineer I",
+    ],
+)
+def test_generic_engineer_one_does_not_establish_role_relevance(title):
+    assert classify(job(title)) is None
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
         "Software Development Engineer I - Early Career (2027 Starts)",
         "Software Development Engineer (2027 Starts)",
     ],
@@ -253,6 +296,21 @@ def test_plain_affirmative_experience_requirements_are_excluded(description):
 @pytest.mark.parametrize(
     "description",
     [
+        "2 years of experience in software engineering",
+        "2 years of relevant work experience",
+        "2 years of professional software development experience",
+        "3 years of experience in backend engineering",
+        "At least 2 years of relevant professional experience",
+        "Minimum 2 years of software engineering experience",
+    ],
+)
+def test_career_level_experience_wording_is_excluded(description):
+    assert classify(job("Software Engineer", description)) is None
+
+
+@pytest.mark.parametrize(
+    "description",
+    [
         "0-2 years of professional software development experience",
         "0 to 2 years of professional engineering experience",
         "Up to 2 years of software engineering experience",
@@ -262,6 +320,23 @@ def test_plain_affirmative_experience_requirements_are_excluded(description):
     ],
 )
 def test_plain_experience_requirement_protected_cases(description):
+    result = classify(job("Software Engineer - New Grad", description))
+    assert result is not None
+    assert result.category == MatchCategory.NEW_GRAD_MATCH
+
+
+@pytest.mark.parametrize(
+    "description",
+    [
+        "At least 2 years of experience with Python",
+        "At least 2 years of experience in Python",
+        "2+ years using Linux",
+        "2 years working with AWS",
+        "2+ years of experience with Java",
+        "Experience with Python for 2 years",
+    ],
+)
+def test_tool_specific_experience_duration_does_not_exclude(description):
     result = classify(job("Software Engineer - New Grad", description))
     assert result is not None
     assert result.category == MatchCategory.NEW_GRAD_MATCH
