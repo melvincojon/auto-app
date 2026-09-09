@@ -51,12 +51,12 @@ jobs:
         run: job-monitor test-notification
 
       - name: Restore durable state
-        if: github.event_name == 'schedule' || inputs.mode == 'monitor'
+        if: inputs.mode == 'monitor'
         run: bash scripts/load_state.sh .state/jobs.json
 
       - name: Poll and notify
         id: poll
-        if: github.event_name == 'schedule' || inputs.mode == 'monitor'
+        if: inputs.mode == 'monitor'
         continue-on-error: true
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
