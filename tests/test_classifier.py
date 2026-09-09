@@ -203,6 +203,112 @@ def test_bare_2027_is_not_an_early_career_signal():
 
 
 @pytest.mark.parametrize(
+    ("title", "expected"),
+    [
+        ("Member of Technical Staff", MatchCategory.POSSIBLE_NEW_GRAD_MATCH),
+        ("Member of Technical Staff I", MatchCategory.POSSIBLE_NEW_GRAD_MATCH),
+        ("Senior Member of Technical Staff", None),
+        ("Sr. Member of Technical Staff", None),
+        ("Principal Member of Technical Staff", None),
+        ("Lead Member of Technical Staff", None),
+        ("Manager, Member of Technical Staff", None),
+    ],
+)
+def test_member_of_technical_staff_seniority(title, expected):
+    result = classify(job(title))
+    if expected is None:
+        assert result is None
+    else:
+        assert result is not None
+        assert result.category == expected
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Software Development Engineer I - Early Career (2027 Starts)",
+        "Software Development Engineer (2027 Starts)",
+    ],
+)
+def test_2027_starts_is_an_early_career_signal(title):
+    result = classify(job(title))
+    assert result is not None
+    assert result.category == MatchCategory.NEW_GRAD_MATCH
+
+
+@pytest.mark.parametrize(
+    "description",
+    [
+        "2 years of software engineering experience required",
+        "2 years of professional software development experience",
+        "2 years professional software engineering experience required",
+        "3 years of relevant industry experience",
+        "4 years of professional engineering experience preferred",
+    ],
+)
+def test_plain_affirmative_experience_requirements_are_excluded(description):
+    assert classify(job("Software Engineer", description)) is None
+
+
+@pytest.mark.parametrize(
+    "description",
+    [
+        "0-2 years of professional software development experience",
+        "0 to 2 years of professional engineering experience",
+        "Up to 2 years of software engineering experience",
+        "2+ years using Python",
+        "2+ years working with Linux",
+        "Work with engineers who have 10+ years of professional experience",
+    ],
+)
+def test_plain_experience_requirement_protected_cases(description):
+    result = classify(job("Software Engineer - New Grad", description))
+    assert result is not None
+    assert result.category == MatchCategory.NEW_GRAD_MATCH
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Software Engineer, Hardware Infrastructure",
+        "Software Engineer, Silicon Systems",
+        "Software Engineer - Hardware Platform",
+        "Embedded Software Engineer, Hardware Systems",
+    ],
+)
+def test_software_roles_with_hardware_domain_descriptors_are_eligible(title):
+    assert classify(job(title)) is not None
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Hardware Systems Engineer",
+        "Silicon Validation Engineer",
+    ],
+)
+def test_additional_clearly_nonsoftware_roles_are_excluded(title):
+    assert classify(job(title)) is None
+
+
+@pytest.mark.parametrize(
+    ("title", "description"),
+    [
+        ("2027 Graduate Program", "Join as a software developer working on production systems."),
+        ("Technology Graduate Program", "You will join the firm as a quantitative developer."),
+    ],
+)
+def test_graduate_program_role_fallback(title, description):
+    result = classify(job(title, description))
+    assert result is not None
+    assert result.category == MatchCategory.NEW_GRAD_MATCH
+
+
+def test_unrelated_title_does_not_use_description_role_fallback():
+    assert classify(job("Account Executive", "Work closely with software developers")) is None
+
+
+@pytest.mark.parametrize(
     ("company", "title", "description", "location", "expected"),
     [
         ("Coinbase", "Software Engineer- Money Movement", "Build payments", "Remote - Canada", None),

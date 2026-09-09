@@ -25,7 +25,8 @@ _TECHNICAL_TITLE = re.compile(
 )
 
 _IRRELEVANT_TITLE = re.compile(
-    r"\b(?:hardware|electrical|mechanical|silicon)\b|"
+    r"\b(?:hardware|electrical|mechanical|silicon)"
+    r"(?:\s+(?:systems?|validation))?\s+engineer\b|"
     r"\b(?:pre[ -]?sales|solutions?\s+consult(?:ant|ing)|"
     r"digital\s+solution\s+engineering)\b",
     re.I,
@@ -47,6 +48,20 @@ _SENIOR_TITLE = re.compile(
     r")\b",
     re.I,
 )
+_MEMBER_OF_TECHNICAL_STAFF = re.compile(r"\bmember\s+of\s+technical\s+staff\b", re.I)
+
+_GRADUATE_PROGRAM_TITLE = re.compile(
+    r"\b(?:(?:202[67]|technology|university)\s+)?graduate\s+program(?:me)?\b|"
+    r"\b(?:new[ -](?:college\s+)?grad(?:uate)?|early[ -]career)\s+program(?:me)?\b",
+    re.I,
+)
+_GRADUATE_ROLE_DESCRIPTION = re.compile(
+    r"\b(?:join|work|start|serve)\b[^.!?]{0,60}\bas\s+(?:an?\s+)?(?:"
+    r"software\s+(?:development\s+)?engineer|software\s+developer|developer|"
+    r"quantitative\s+developer|quant\s+developer|quantitative\s+technologist"
+    r")\b",
+    re.I,
+)
 
 _EARLY_SIGNALS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bnew\s+(?:college\s+)?grad(?:uate)?s?\b", re.I), "new-graduate language"),
@@ -56,7 +71,7 @@ _EARLY_SIGNALS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bentry[ -]level\b", re.I), "entry-level language"),
     (re.compile(r"\bgraduate\s+program(?:me)?\b", re.I), "graduate-program language"),
     (re.compile(r"\bcampus\s+(?:hire|hiring|recruit(?:ing|ment))\b", re.I), "campus-hiring language"),
-    (re.compile(r"\b(?:class\s+of\s+2027|2027\s+(?:graduate|grad|start(?:ing)?))\b", re.I), "2027 graduate/start language"),
+    (re.compile(r"\b(?:class\s+of\s+2027|2027\s+(?:graduate|grad|start(?:s|ing)?))\b", re.I), "2027 graduate/start language"),
     (
         re.compile(
             r"\b(?:graduat(?:e|ing|ion)|degree|start(?:ing)?)\b[^.!?]{0,80}"
@@ -137,8 +152,16 @@ _EXPERIENCE_REQUIREMENT = re.compile(
     r"(?:software\s+(?:engineering|development)|engineering|industry|technical\s+pre[ -]?sales|"
     r"professional\s+experience|relevant\s+(?:industry\s+)?experience)\b|"
     r"\b(?:[2-9]|\d{2,})\+\s+(?:years?\s+)?(?:relevant\s+)?industry\s+experience\b|"
-    r"\b(?:[2-9]|\d{2,})\+\s+(?:years?\s+)?technical\s+pre[ -]?sales\b"
+    r"\b(?:[2-9]|\d{2,})\+\s+(?:years?\s+)?technical\s+pre[ -]?sales\b|"
+    r"\b(?:[2-9]|\d{2,})\s+years?(?:\s+of)?\s+"
+    r"(?:non[ -]?internship\s+)?(?:relevant\s+)?(?:professional\s+)?"
+    r"(?:software\s+(?:engineering|development)|engineering|industry|"
+    r"professional\s+experience|relevant\s+(?:industry\s+)?experience)\b"
     r")",
+    re.I,
+)
+_ALLOWED_EXPERIENCE_RANGE_PREFIX = re.compile(
+    r"(?:\b0\s*(?:-|–|—|to)\s*|\bup\s+to\s*)$",
     re.I,
 )
 _OTHER_PERSON_EXPERIENCE = re.compile(
@@ -166,6 +189,9 @@ def _us_location_eligible(location: str | None) -> bool:
 
 def _requires_experienced_candidate(description: str) -> bool:
     for match in _EXPERIENCE_REQUIREMENT.finditer(description):
+        prefix = description[max(0, match.start() - 12) : match.start()]
+        if _ALLOWED_EXPERIENCE_RANGE_PREFIX.search(prefix):
+            continue
         before = max(description.rfind(mark, 0, match.start()) for mark in ".;\n•")
         after_candidates = [
             position
@@ -180,6 +206,13 @@ def _requires_experienced_candidate(description: str) -> bool:
     return False
 
 
+def _has_explicit_seniority(title: str) -> bool:
+    # "Staff" is part of the base MTS role name, not a level by itself. Any
+    # seniority word elsewhere in the title remains visible and is rejected.
+    title_without_mts = _MEMBER_OF_TECHNICAL_STAFF.sub("", title)
+    return bool(_SENIOR_TITLE.search(title_without_mts))
+
+
 def classify(job: Job) -> Match | None:
     """Bias toward notification while honoring affirmative exclusions."""
     title = job.title or ""
@@ -190,9 +223,14 @@ def classify(job: Job) -> Match | None:
         return None
     if not _us_location_eligible(job.location):
         return None
-    if _IRRELEVANT_TITLE.search(title) or not _TECHNICAL_TITLE.search(title):
+    relevant_title = bool(_TECHNICAL_TITLE.search(title))
+    graduate_program_role = bool(
+        _GRADUATE_PROGRAM_TITLE.search(title)
+        and _GRADUATE_ROLE_DESCRIPTION.search(description)
+    )
+    if _IRRELEVANT_TITLE.search(title) or not (relevant_title or graduate_program_role):
         return None
-    if _SENIOR_TITLE.search(title) and not re.search(r"\bmember\s+of\s+technical\s+staff\b", title, re.I):
+    if _has_explicit_seniority(title):
         return None
     if _requires_experienced_candidate(description):
         return None
