@@ -54,6 +54,10 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit("DISCORD_WEBHOOK_URL is required unless --dry-run is used")
         report = run_monitor(companies, state, notifier, http)
         state.save(state_path)
+        for warning in report.warnings:
+            print(
+                f"WARNING | {warning.company} | {warning.code} | {warning.message}"
+            )
         print(
             f"Run: {report.checked_companies}/{len(companies)} sources, "
             f"seeded={len(report.seeded_companies)}, new={report.new_jobs}, "

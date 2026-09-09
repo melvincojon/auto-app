@@ -51,12 +51,15 @@ def run_monitor(
             for listing in jobs:
                 if state.has_seen(listing):
                     continue
+                if state.is_job_quarantined(listing):
+                    continue
                 report.new_jobs += 1
                 identity_job = listing
                 try:
                     job = adapter.hydrate(listing)
                     adapter._validate_job(job, require_description=False)
                     match = classify(job)
+                    state.clear_job_failure(identity_job)
                     if match is not None:
                         notifier.notify_job(job, match)
                         report.notifications += 1
@@ -66,9 +69,12 @@ def run_monitor(
                         HealthWarning(company.company, "notification_failure", str(exc))
                     )
                 except SourceError as exc:
-                    _warn(report,
-                        HealthWarning(company.company, exc.code, f"job {listing.job_id}: {exc}")
-                    )
+                    if state.record_job_failure(
+                        identity_job, exc.code, str(exc)
+                    ):
+                        _warn(report,
+                            HealthWarning(company.company, exc.code, f"job {listing.job_id}: {exc}")
+                        )
                 except Exception as exc:
                     _warn(report,
                         HealthWarning(company.company, "unexpected_failure", f"job {listing.job_id}: {exc}")
