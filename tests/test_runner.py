@@ -76,3 +76,30 @@ def test_source_failure_does_not_stop_other_companies(monkeypatch):
     assert state.is_seeded("Healthy")
     assert report.warnings[0].code == "rate_limited"
     assert notifier.health == report.warnings
+
+
+def test_foreign_only_new_job_is_seen_without_notification(monkeypatch):
+    jobs = [job("Acme", "1")]
+    adapter = FakeAdapter(jobs)
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = MonitorState()
+    notifier = RecordingNotifier()
+    run_monitor([cfg("Acme")], state, notifier, object())
+
+    foreign = Job(
+        "Acme",
+        "fake",
+        "2",
+        "Software Engineer",
+        "New graduate role",
+        "Remote - Canada",
+        None,
+        "https://x/2",
+    )
+    jobs.append(foreign)
+    report = run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert report.new_jobs == 1
+    assert report.notifications == 0
+    assert notifier.jobs == []
+    assert state.has_seen(foreign)
