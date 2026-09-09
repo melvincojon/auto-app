@@ -1,9 +1,6 @@
 name: New-grad job monitor
 
 on:
-  schedule:
-    - cron: "7-57/10 5-23 * * *"
-      timezone: "America/New_York"
   workflow_dispatch:
     inputs:
       mode:

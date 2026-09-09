@@ -68,11 +68,11 @@ The first successful run for each company seeds every current provider job ID an
 4. Run **New-grad job monitor** manually with mode `smoke`. Confirm all configured sources pass.
 5. Run it once with mode `monitor`. That run safely seeds existing jobs and creates the dedicated `monitor-state` branch.
 
-The schedule runs at minutes 7, 17, 27, 37, 47, and 57 from 5:00 AM through midnight-adjacent 11:57 PM in `America/New_York`, every day. The off-minute schedule reduces exposure to GitHub’s top-of-hour congestion. `workflow_dispatch` supports a normal poll, a notification-free source smoke test, and an isolated Discord notification test.
+Production scheduling is handled by QStash, which triggers `workflow_dispatch` with `mode=monitor` every 10 minutes from 5:07 AM through 11:57 PM in `America/New_York`, every day. `workflow_dispatch` also supports a notification-free source smoke test and an isolated Discord notification test.
 
 State is stored as a single JSON tree on the dedicated `monitor-state` branch using Git plumbing; the workflow never checks that branch out or adds state commits to the main branch. A concurrency group serializes polls. State is saved even when a later source reports a failure, so successfully delivered alerts do not repeat. Do not branch-protect `monitor-state` in a way that prevents `github-actions[bot]` from updating it.
 
-GitHub may delay scheduled jobs during high load, and scheduled workflows in inactive public repositories may be disabled by GitHub. The monitor reports source health but cannot compensate for a workflow that GitHub has not started.
+The monitor reports source health but cannot compensate for a dispatch that QStash has not sent or GitHub Actions has not started.
 
 ## Notifications and source health
 
