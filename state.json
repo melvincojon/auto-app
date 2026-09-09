@@ -1,4 +1,12 @@
 {
+  "job_failures": {
+    "bba9b62b696d41bd3997880c6fc88e4dba6befdd18388d71a2768baf5b5ba8f7": {
+      "error_code": "schema_change",
+      "error_message": "no JobPosting JSON-LD found on detail page",
+      "failure_count": 1,
+      "last_failure_at": "2026-09-09T20:10:45.788821+00:00"
+    }
+  },
   "seeded_companies": [
     "airbnb",
     "amazon",
@@ -3968,6 +3976,11 @@
       "first_seen_at": "2026-09-08T21:52:48.564830+00:00",
       "job_id": "b873982d-6118-46b4-a128-0090a641a87d"
     },
+    "0aef72dc73300947495170c5af6c97de3fcb59db8fb839afb12271dd7a10cf95": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.045395+00:00",
+      "job_id": "b5b76147-de25-43e7-a0df-469ce0159b8b"
+    },
     "0af094e6303afa490d90d5fa49392c870677879e9a9dcab57a6b1a4485fa5bb1": {
       "company": "Intuit",
       "first_seen_at": "2026-09-08T21:54:58.985477+00:00",
@@ -5227,6 +5240,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.554500+00:00",
       "job_id": "b8567ce8-b29f-4d08-8f44-0282439b873a"
+    },
+    "0e897b14afffb56d0510372a47335550204c7576cafbd90ec3e1ac541b92896a": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.049213+00:00",
+      "job_id": "d84fa45c-7a49-46e1-a316-1aa9f238717f"
     },
     "0e8a8951f75a8c6e7dfc9b88718e977711ec6c0c731e1a3fb657162d32e67361": {
       "company": "Amazon",
@@ -13938,6 +13956,11 @@
       "first_seen_at": "2026-09-08T21:52:48.563852+00:00",
       "job_id": "b33cbadc-0fe3-4988-8064-3cbfca5a8211"
     },
+    "26e51c6abd7aba2546fc6b20b01397345f4e87a9f9f9548c004b09156892f9e4": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.050103+00:00",
+      "job_id": "64ffcdb9-0f6c-4e0e-9a5f-8499987557de"
+    },
     "26e7eefb7ea6f8caa2cc65f7753240693199fefc323b8d8eb2fa2b3b26f1bd80": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.564097+00:00",
@@ -14667,6 +14690,11 @@
       "company": "Microsoft",
       "first_seen_at": "2026-09-08T21:54:10.494491+00:00",
       "job_id": "1970393556927705"
+    },
+    "28cbc117be518f255e0a9e4500f64ecb18462d9e4bb8e1f6071935b62d67a2f4": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.049840+00:00",
+      "job_id": "1c9d6a91-d14e-402e-9849-84a692d3124c"
     },
     "28d1b975b3892e7a3cbe2a70a82fa448c41ded525e63d1a83b2f0f4c0ae188cf": {
       "company": "Databricks",
@@ -17612,6 +17640,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-09T01:31:57.501961+00:00",
       "job_id": "676dec72-4019-4bc4-91bd-5cee288ca0f1"
+    },
+    "319bb5709029377fd219b2ae6734438ff0a01d0c1bfed3bf9103057a98a54140": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.047658+00:00",
+      "job_id": "9b38de79-6a62-4262-b61b-67f64cb8a3b5"
     },
     "31a01420d167d80bb20837d9d4e191f3762ef8ea580595fa4ff9afbca47b47fa": {
       "company": "Databricks",
@@ -26983,6 +27016,11 @@
       "first_seen_at": "2026-09-08T21:54:10.493730+00:00",
       "job_id": "1970393556952566"
     },
+    "4c89d7acd3343ece93e1ff140584fc6673eb938037cb77822c86360a1759abc3": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.048617+00:00",
+      "job_id": "9e8f68ef-3bcd-4088-a373-a9d66df6e5d6"
+    },
     "4c91dc4b43ce00210782391bf9e0996a70be131183638e853093722aa914fc53": {
       "company": "Robinhood",
       "first_seen_at": "2026-09-08T21:54:13.287296+00:00",
@@ -30707,6 +30745,11 @@
       "company": "Databricks",
       "first_seen_at": "2026-09-08T21:55:02.995552+00:00",
       "job_id": "6779233002"
+    },
+    "56819ca81311970b6a890e04fd62c84012e9dee2975c8fc6a56f775daeab3848": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.046893+00:00",
+      "job_id": "1061bee3-2847-49ff-9f72-38698ffc7bd7"
     },
     "56845f83900789f56a16f7ce19d020307693a72e2dd1ea88619728132a22c3e0": {
       "company": "Intuit",
@@ -37542,6 +37585,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.554200+00:00",
       "job_id": "da78e74f-de65-4e73-85d3-d9e861c1b633"
+    },
+    "69476781480bf48c8df2b8906230ce40194b7dc72f1611e45ea55943ad764df3": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.046394+00:00",
+      "job_id": "9d949719-ed11-44ae-91e5-17add914cc98"
     },
     "6949341867d2286b8173b44cfce714e3a0530597c4ceeb92039967e2a26d9328": {
       "company": "Amazon",
@@ -47883,6 +47931,11 @@
       "first_seen_at": "2026-09-08T21:52:48.551419+00:00",
       "job_id": "71e9d8e8-332d-4060-a8ac-4aab9d7b64f5"
     },
+    "862ffc7f466d3551ef47ef0514d8eb6892fd2be0660c591a6ba7a94cd040871b": {
+      "company": "Meta",
+      "first_seen_at": "2026-09-09T20:10:45.097514+00:00",
+      "job_id": "2879720939075016"
+    },
     "86312e2e0ea00c845c791f489bbf4321f457891cba6258fd650a882f3df81744": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.569935+00:00",
@@ -54257,6 +54310,11 @@
       "company": "Microsoft",
       "first_seen_at": "2026-09-08T21:54:10.495820+00:00",
       "job_id": "1970393556971419"
+    },
+    "9863badabb4028ad3f4eecc4b9f153917c31b14a3d3b8af303a1ee4e5eb84370": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-09-09T20:10:07.863798+00:00",
+      "job_id": "1970393556984914"
     },
     "98644c8263a9b777f30774766e275d6fec7a4e38d41cfef6aed52827b3164ef6": {
       "company": "Amazon",
@@ -61692,6 +61750,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-09T06:38:07.254733+00:00",
       "job_id": "8d0e11c1-bb28-44c4-bbab-c3b28b652e0b"
+    },
+    "ad544a1e6bc36d82c5c058d4f4fc533aee3792fd0f6c6e62ecb5dd731866ab4e": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.054529+00:00",
+      "job_id": "a031b3cb-e6b9-48cf-bafc-6c143e0179ed"
     },
     "ad55bbc36ffcfca4613fa31c322309d627b819cc18e874a2176d4a6ce065c405": {
       "company": "Amazon",
@@ -74533,6 +74596,11 @@
       "first_seen_at": "2026-09-08T21:52:48.561840+00:00",
       "job_id": "001c60d1-10a0-41e6-93f7-c7ae265d241d"
     },
+    "d2c5cb68efa8beb614630fcf7139f318087e6ac44fc6680946b29206ac4fde6b": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-09-09T20:10:08.118878+00:00",
+      "job_id": "1970393556984019"
+    },
     "d2c86b746dc5c75a272ec1b4946afcfc1d9238284139caba10efe7df1e79580e": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.552177+00:00",
@@ -82773,6 +82841,11 @@
       "first_seen_at": "2026-09-08T21:55:23.508214+00:00",
       "job_id": "bf2e9a54-4f46-423f-ad08-5317c1d1c9b4"
     },
+    "e886efde9a4ecba24f1c1a442833f31f5dc0180dbde9c6981faa3451975a8d8c": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.053058+00:00",
+      "job_id": "9de6e535-dc6d-48ed-a875-6a83cdd85df3"
+    },
     "e88da9ee93dcfb7338c583bdcfd150baa74d2b059bc2afc312fabb2474e3175a": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.567357+00:00",
@@ -85897,6 +85970,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.569683+00:00",
       "job_id": "fc61a3ea-8093-4b0a-8d9b-c4a396b99da6"
+    },
+    "f18122f80df162275ca2c350fcb41310b6e448f883a16198a0af9be821394e5e": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-09T20:08:39.051417+00:00",
+      "job_id": "8be08072-b599-426d-9c54-bd26e8f00e43"
     },
     "f184b5e1956247a426eefd8087e49e5596bb752ad60b7c68f1986d763a78caa9": {
       "company": "Amazon",
