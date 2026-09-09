@@ -7,6 +7,7 @@ from job_monitor.cli import main
 from job_monitor.models import HealthWarning, Job, Match, MatchCategory
 from job_monitor.notifier import (
     NOTIFICATION_TEST_MESSAGE,
+    ConsoleNotifier,
     DiscordNotifier,
     discord_health_payload,
     discord_job_payload,
@@ -22,12 +23,57 @@ def test_job_notification_is_concise_and_complete():
         job, Match(MatchCategory.NEW_GRAD_MATCH, "new-graduate language")
     )
     embed = payload["embeds"][0]
-    assert embed["url"] == "https://apply"
+    assert embed["url"] == "https://job"
     assert "NEW_GRAD_MATCH" in embed["description"]
     rendered = str(payload)
     for text in ("Acme", "Software Engineer", "New York", "Sep 8, 2026", "new-graduate"):
         assert text in rendered
     assert payload["allowed_mentions"] == {"parse": []}
+
+
+@pytest.mark.parametrize(
+    ("job_url", "apply_url", "expected"),
+    [
+        ("https://job", "https://apply", "https://job"),
+        ("https://job", None, "https://job"),
+        ("", "https://apply", "https://apply"),
+    ],
+)
+def test_job_notification_prefers_description_url_with_apply_fallback(
+    job_url, apply_url, expected
+):
+    job = Job(
+        "Acme", "test", "1", "Engineer", None, None, None, job_url, apply_url
+    )
+
+    payload = discord_job_payload(
+        job, Match(MatchCategory.NEW_GRAD_MATCH, "new-graduate language")
+    )
+
+    assert payload["embeds"][0]["url"] == expected
+
+
+@pytest.mark.parametrize(
+    ("job_url", "apply_url", "expected"),
+    [
+        ("https://job", "https://apply", "https://job"),
+        ("https://job", None, "https://job"),
+        ("", "https://apply", "https://apply"),
+    ],
+)
+def test_console_notification_uses_same_url_priority(
+    job_url, apply_url, expected, capsys
+):
+    job = Job(
+        "Acme", "test", "1", "Engineer", None, "New York", None, job_url, apply_url
+    )
+    notifier = ConsoleNotifier()
+
+    notifier.notify_job(
+        job, Match(MatchCategory.NEW_GRAD_MATCH, "new-graduate language")
+    )
+
+    assert capsys.readouterr().out.rstrip().endswith(f" | {expected}")
 
 
 @pytest.mark.parametrize(

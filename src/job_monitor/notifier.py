@@ -46,7 +46,7 @@ def discord_test_payload() -> dict:
 
 
 def discord_job_payload(job: Job, match: Match) -> dict:
-    url = job.apply_url or job.job_url
+    url = job.job_url or job.apply_url
     fields = [
         {"name": "Company", "value": job.company, "inline": True},
         {"name": "Location", "value": job.location or "Not provided", "inline": True},
@@ -128,7 +128,7 @@ class ConsoleNotifier(Notifier):
         print(NOTIFICATION_TEST_MESSAGE)
 
     def notify_job(self, job: Job, match: Match) -> None:
-        print(f"{match.category.value} | {job.company} | {job.title} | {job.location or '-'} | {job.apply_url or job.job_url}")
+        print(f"{match.category.value} | {job.company} | {job.title} | {job.location or '-'} | {job.job_url or job.apply_url}")
 
     def notify_health(self, warning: HealthWarning) -> None:
         print(f"HEALTH WARNING | {warning.company} | {warning.code} | {warning.message}")
