@@ -3,9 +3,9 @@
     "bba9b62b696d41bd3997880c6fc88e4dba6befdd18388d71a2768baf5b5ba8f7": {
       "error_code": "schema_change",
       "error_message": "no JobPosting JSON-LD found on detail page",
-      "failure_count": 3,
-      "last_failure_at": "2026-09-09T20:30:14.648294+00:00",
-      "quarantined_until": "2026-09-10T20:30:14.648294+00:00"
+      "failure_count": 4,
+      "last_failure_at": "2026-09-10T20:30:29.533373+00:00",
+      "quarantined_until": "2026-09-11T20:30:29.533373+00:00"
     },
     "d5d01ca56e67b59c01165d664a677ab698af42d4e6b879fb96b9445327559b6b": {
       "error_code": "schema_change",
@@ -5244,6 +5244,11 @@
       "first_seen_at": "2026-09-08T21:52:48.552790+00:00",
       "job_id": "48c21673-81c1-4835-9a17-7426b8b4a4ba"
     },
+    "0db33132fc20051d8d1f2db62b5d4c6d3c3a67c2f8e06f0c8dfa314a649bb47d": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-09-10T20:30:03.367177+00:00",
+      "job_id": "1970393556978209"
+    },
     "0db52cfbbe7453d1a58d0b7c2239f6200809c391fced3e08218f34a5132e7cf3": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.554917+00:00",
@@ -6993,6 +6998,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.555507+00:00",
       "job_id": "084dc524-712e-4b8b-a3c4-80ed6eba0bcb"
+    },
+    "128752a2a780846577bb24eeb2a08c72368da1711cb64b8f13afb6213e1df207": {
+      "company": "Bloomberg",
+      "first_seen_at": "2026-09-10T20:29:18.759708+00:00",
+      "job_id": "22067"
     },
     "128f4175e74db38aff4baafeaf768a2ed92e4b11a070a5cda7382ba4dda86048": {
       "company": "Amazon",
@@ -9843,6 +9853,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.568628+00:00",
       "job_id": "fb9500de-6049-439d-b10a-fc4336d90b59"
+    },
+    "1a3125ffdee5376798ff9a4cf18acb93bd7039af21a94c9ea724baf295355433": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-10T20:28:39.997877+00:00",
+      "job_id": "9861f087-7fa9-4436-84f4-1a59f439a22e"
     },
     "1a33d05ec1b974f1434778b230afe794c56d92c4b74391822cbe338039f6f259": {
       "company": "Microsoft",
@@ -31449,6 +31464,11 @@
       "first_seen_at": "2026-09-08T21:52:48.548586+00:00",
       "job_id": "26f1adf2-4b85-4274-a94b-eab09b968db4"
     },
+    "54edb4a91a542a6002effe77deb96f583c937d3daee5f400b7c33b2b97263c44": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-10T20:28:39.998464+00:00",
+      "job_id": "9db790ab-bdb5-4b96-b8d8-0354e63d57bf"
+    },
     "54ef19077943282d07dc905896453d1f6a0f8d916c90a3d459ea763b54ddecda": {
       "company": "Amazon",
       "first_seen_at": "2026-09-10T09:08:34.729812+00:00",
@@ -45768,6 +45788,11 @@
       "company": "Rippling",
       "first_seen_at": "2026-09-08T21:55:24.662989+00:00",
       "job_id": "91ae85ae-9d73-4eb3-a1e2-2c0fe32c7c77"
+    },
+    "7a49bcc8c8519ac2df3a60f92c253893b010242959e9711e7ae1e15372013089": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-09-10T20:30:03.186099+00:00",
+      "job_id": "1970393556994473"
     },
     "7a4a71764c3e7b132e5ab5a189e6dac54248991c054f452f28d73d1746b067d8": {
       "company": "Databricks",
@@ -76854,6 +76879,11 @@
       "first_seen_at": "2026-09-10T19:58:43.536606+00:00",
       "job_id": "2e7eddeb-2e37-4019-9f40-c81c15c1f98f"
     },
+    "cfb042986bae39852cdff2d3efe6f1c106d2005194caee7f36a02f903fd2873e": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-09-10T20:30:02.881344+00:00",
+      "job_id": "1970393556857973"
+    },
     "cfb3323960317c408aa5854edfc3e87aff647f39bbbc978c8f10e8b947fa0aa5": {
       "company": "Microsoft",
       "first_seen_at": "2026-09-08T23:40:02.327367+00:00",
@@ -78533,6 +78563,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.546230+00:00",
       "job_id": "0fb5cfd2-1ad1-4dbd-8434-0b07d7db1acc"
+    },
+    "d42853bf6af39abcd0f84036f2bac33c6f75dc559ecaa5f470d16dbb689f4d40": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-10T20:28:39.998737+00:00",
+      "job_id": "25c0ec67-53bf-4ad6-aa68-87d72d4a6880"
     },
     "d4288fe557429d7d17cee56610bb7d84a929867473ea88a82ea88a69d3ffbad5": {
       "company": "Coinbase",
@@ -88063,6 +88098,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.560018+00:00",
       "job_id": "de2f1e37-a80f-401b-88e9-b889eea3126b"
+    },
+    "ec82fcdeb2a965bf4f128ac3dcc72b0650db22b4ca403a57efd8b5ef01b5315b": {
+      "company": "Bloomberg",
+      "first_seen_at": "2026-09-10T20:29:19.556790+00:00",
+      "job_id": "22063"
     },
     "ec95cee7215eaebab42493a5354e882717eb25ee832dea1e12f6e57a5ad199be": {
       "company": "Microsoft",
