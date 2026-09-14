@@ -100,6 +100,47 @@ def test_source_failure_does_not_stop_other_companies(monkeypatch):
     assert notifier.health == report.warnings
 
 
+def test_source_alerts_first_failure_escalates_then_recovers(monkeypatch):
+    adapter = FakeAdapter(failure=SourceError("pagination_failure", "page repeated"))
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = seeded_state()
+    notifier = RecordingNotifier()
+
+    reports = [run_monitor([cfg("Acme")], state, notifier, object()) for _ in range(3)]
+
+    assert [len(report.warnings) for report in reports] == [1, 1, 1]
+    assert len(notifier.health) == 2
+    assert notifier.health[0].code == "pagination_failure"
+    assert "consecutive failures: 3" in notifier.health[1].message
+    assert state.source_health["acme"]["consecutive_failures"] == 3
+
+    adapter.failure = None
+    adapter.jobs = [job("Acme", "1")]
+    recovered = run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert recovered.warnings == []
+    assert notifier.health[-1].code == "source_recovered"
+    assert state.source_health["acme"]["consecutive_failures"] == 0
+
+
+def test_failed_scan_cannot_replace_successful_source_snapshot(monkeypatch):
+    adapter = FakeAdapter([job("Acme", "1"), job("Acme", "2")])
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = MonitorState()
+
+    run_monitor([cfg("Acme")], state, RecordingNotifier(), object())
+    snapshot = dict(state.source_health["acme"])
+    adapter.failure = SourceError("suspicious_empty_response", "source returned zero jobs")
+    adapter.jobs = []
+    run_monitor([cfg("Acme")], state, RecordingNotifier(), object())
+
+    health = state.source_health["acme"]
+    assert health["last_successful_scan"] == snapshot["last_successful_scan"]
+    assert health["last_successful_job_count"] == 2
+    assert health["last_successful_job_ids"] == ["1", "2"]
+    assert all(state.has_seen(job("Acme", job_id)) for job_id in ("1", "2"))
+
+
 def test_foreign_only_new_job_is_seen_without_notification(monkeypatch):
     jobs = [job("Acme", "1")]
     adapter = FakeAdapter(jobs)

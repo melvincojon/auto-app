@@ -17,6 +17,7 @@ class MonitorState:
     seeded_companies: set[str] = field(default_factory=set)
     seen: dict[str, dict[str, Any]] = field(default_factory=dict)
     job_failures: dict[str, dict[str, Any]] = field(default_factory=dict)
+    source_health: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path: str | Path) -> "MonitorState":
@@ -29,10 +30,12 @@ class MonitorState:
         seen = payload.get("seen", {})
         seeded = payload.get("seeded_companies", [])
         job_failures = payload.get("job_failures", {})
+        source_health = payload.get("source_health", {})
         if (
             not isinstance(seen, dict)
             or not isinstance(seeded, list)
             or not isinstance(job_failures, dict)
+            or not isinstance(source_health, dict)
         ):
             raise ValueError("state file has an invalid shape")
         return cls(
@@ -40,7 +43,54 @@ class MonitorState:
             seeded_companies=set(map(str, seeded)),
             seen=seen,
             job_failures=job_failures,
+            source_health=source_health,
         )
+
+    @staticmethod
+    def _source_key(company: str) -> str:
+        return company.casefold()
+
+    def record_source_success(
+        self, company: str, jobs: list[Job], *, now: datetime | None = None
+    ) -> bool:
+        """Atomically replace source metadata only after a complete successful scan.
+
+        Returns whether the source recovered from one or more scan failures.
+        """
+        key = self._source_key(company)
+        previous = self.source_health.get(key, {})
+        recovered = int(previous.get("consecutive_failures", 0)) > 0
+        scanned_at = now or datetime.now(UTC)
+        self.source_health[key] = {
+            "last_successful_scan": scanned_at.isoformat(),
+            "consecutive_failures": 0,
+            "last_successful_job_count": len(jobs),
+            "last_successful_job_ids": [job.job_id for job in jobs],
+        }
+        return recovered
+
+    def record_source_failure(
+        self,
+        company: str,
+        error_code: str,
+        error_message: str,
+        *,
+        now: datetime | None = None,
+    ) -> int:
+        """Record failure without changing the last-known-good snapshot."""
+        key = self._source_key(company)
+        previous = dict(self.source_health.get(key, {}))
+        count = int(previous.get("consecutive_failures", 0)) + 1
+        previous.update(
+            {
+                "consecutive_failures": count,
+                "last_failure_at": (now or datetime.now(UTC)).isoformat(),
+                "last_error_code": error_code,
+                "last_error_message": error_message,
+            }
+        )
+        self.source_health[key] = previous
+        return count
 
     def is_seeded(self, company: str) -> bool:
         return company.casefold() in self.seeded_companies
@@ -115,6 +165,7 @@ class MonitorState:
             "seeded_companies": sorted(self.seeded_companies),
             "seen": self.seen,
             "job_failures": self.job_failures,
+            "source_health": self.source_health,
         }
         fd, temp_name = tempfile.mkstemp(prefix="state-", suffix=".json", dir=state_path.parent)
         try:

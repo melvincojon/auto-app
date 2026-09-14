@@ -77,14 +77,19 @@ def discord_job_payload(job: Job, match: Match) -> dict:
 
 
 def discord_health_payload(warning: HealthWarning) -> dict:
+    recovered = warning.code == "source_recovered"
     return {
         "username": "New-grad job monitor",
         "allowed_mentions": {"parse": []},
         "embeds": [
             {
-                "title": f"Source health warning: {warning.company}"[:256],
+                "title": (
+                    f"Source recovered: {warning.company}"
+                    if recovered
+                    else f"Source health warning: {warning.company}"
+                )[:256],
                 "description": warning.message[:4096],
-                "color": 0xE74C3C,
+                "color": 0x2ECC71 if recovered else 0xE74C3C,
                 "fields": [{"name": "Code", "value": warning.code[:1024], "inline": True}],
             }
         ],

@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 
 import httpx
+import pytest
 
 from job_monitor.adapters.versioned import MetaRelayAdapter, RipplingAdapter
 from job_monitor.config import CompanyConfig
+from job_monitor.errors import SourceError
 
 
 def cfg(company, adapter, **values):
@@ -31,6 +33,32 @@ def test_meta_bootstrap_html_typed_json_and_detail(make_http):
     jobs = adapter.list_jobs()
     assert jobs[0].location == "NYC"
     assert adapter.hydrate(jobs[0]).description == "New graduate"
+
+
+def test_meta_retries_missing_lsd_and_fails_closed_on_bad_doc_id(make_http, caplog):
+    bootstraps = 0
+
+    def handler(req):
+        nonlocal bootstraps
+        if req.url.path == "/jobsearch/":
+            bootstraps += 1
+            body = "<html><title>Careers</title></html>" if bootstraps == 1 else '<script>["LSD",[],{"token":"abc"}]</script>'
+            return httpx.Response(200, text=body, request=req, headers={"content-type": "text/html"})
+        return httpx.Response(200, json={"errors": [{"message": "unknown query"}]}, request=req, headers={"content-type": "text/html"})
+
+    adapter = MetaRelayAdapter(
+        cfg(
+            "Meta", "meta_relay_jsonld", endpoint="https://x/api/graphql/", bootstrap_retries=2,
+            session_bootstrap={"url": "https://x/jobsearch/", "request_header": "x-fb-lsd", "referer": "https://x/jobsearch/"},
+            request={"friendly_name": "Query", "doc_id": "stale", "variables": {"search_input": {}}},
+        ), make_http(handler)
+    )
+
+    with pytest.raises(SourceError, match="persisted query ID") as exc:
+        adapter.list_jobs()
+    assert exc.value.code == "versioned_contract_failure"
+    assert bootstraps == 2
+    assert "lsd_module_present" in caplog.text
 
 
 def test_rippling_pagination_deduplicates_by_job_id_and_hydrates(make_http):

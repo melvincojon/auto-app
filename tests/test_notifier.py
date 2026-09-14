@@ -136,6 +136,14 @@ def test_health_notification_contains_failure():
     assert "all_jobs missing" in payload["embeds"][0]["description"]
 
 
+def test_health_recovery_notification_is_green():
+    payload = discord_health_payload(
+        HealthWarning("Meta", "source_recovered", "Source recovered; 941 jobs.")
+    )
+    assert payload["embeds"][0]["title"] == "Source recovered: Meta"
+    assert payload["embeds"][0]["color"] == 0x2ECC71
+
+
 def test_notification_test_payload_and_delivery_path(make_http):
     requests: list[httpx.Request] = []
 

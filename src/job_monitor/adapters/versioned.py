@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import replace
 from urllib.parse import urlencode
@@ -8,9 +9,13 @@ from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 
 from ..errors import SourceError
+from ..diagnostics import format_diagnostics, html_structure
 from ..models import Job
 from ..parsing import clean_text, join_location, json_ld_job, nested_find
 from .base import SourceAdapter
+
+
+logger = logging.getLogger(__name__)
 
 
 class MetaRelayAdapter(SourceAdapter):
@@ -20,18 +25,44 @@ class MetaRelayAdapter(SourceAdapter):
 
     def _bootstrap(self) -> None:
         bootstrap = self.config.require("session_bootstrap")
-        response = self.http.request("GET", bootstrap["url"])
-        html = self.http.html(response)
         patterns = [
             r'\["LSD",\[\],\{"token":"([^"]+)"',
             r'"LSD"\s*,\s*\[\]\s*,\s*\{\s*"token"\s*:\s*"([^"]+)"',
             r'name="lsd"\s+value="([^"]+)"',
         ]
-        for pattern in patterns:
-            match = re.search(pattern, html)
-            if match:
-                self._lsd = match.group(1).replace("\\/", "/")
-                return
+        attempts = int(self.config.get("bootstrap_retries", 2)) + 1
+        for attempt in range(attempts):
+            response = self.http.request("GET", bootstrap["url"])
+            try:
+                html = self.http.html(response)
+            except SourceError:
+                logger.warning("Meta bootstrap invalid response %s", format_diagnostics(response))
+                if attempt + 1 == attempts:
+                    raise
+                self.http.sleep_before_retry(attempt)
+                continue
+            module_present = bool(re.search(r'["\[]LSD["\]]', html))
+            logger.info(
+                "Meta bootstrap %s",
+                format_diagnostics(
+                    response,
+                    structure={**html_structure(html), "lsd_module_present": module_present},
+                ),
+            )
+            for pattern in patterns:
+                match = re.search(pattern, html)
+                if match:
+                    self._lsd = match.group(1).replace("\\/", "/")
+                    return
+            logger.warning(
+                "Meta LSD extraction failed %s",
+                format_diagnostics(
+                    response,
+                    structure={**html_structure(html), "lsd_module_present": module_present},
+                ),
+            )
+            if attempt + 1 < attempts:
+                self.http.sleep_before_retry(attempt)
         raise SourceError("bootstrap_failure", "Meta LSD token is missing")
 
     def list_jobs(self, *, smoke: bool = False) -> list[Job]:
@@ -59,6 +90,12 @@ class MetaRelayAdapter(SourceAdapter):
         )
         payload = self.http.json(response, allow_html_content_type=True)
         if isinstance(payload, dict) and payload.get("errors"):
+            logger.warning(
+                "Meta persisted query failed friendly_name=%s doc_id=%s %s",
+                request["friendly_name"],
+                request["doc_id"],
+                format_diagnostics(response),
+            )
             raise SourceError(
                 "versioned_contract_failure",
                 "Meta Relay query failed; refresh the documented persisted query ID",
@@ -180,6 +217,11 @@ class RipplingAdapter(SourceAdapter):
             if isinstance(nb_pages, int) and page + 1 >= nb_pages:
                 break
             if len(hits) < per_page:
+                if isinstance(nb_pages, int):
+                    raise SourceError(
+                        "pagination_failure",
+                        f"Rippling page {page} was short before advertised page {nb_pages - 1}",
+                    )
                 break
             if len(jobs_by_id) == before:
                 # A page may contain only duplicate job locations, so use objectID to

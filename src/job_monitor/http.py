@@ -35,6 +35,14 @@ class HttpClient:
         if self._owns_client:
             self.client.close()
 
+    def clear_cookies(self) -> None:
+        self.client.cookies.clear()
+
+    def sleep_before_retry(self, attempt: int) -> None:
+        delay = self.backoff_seconds * (2**attempt)
+        if delay:
+            time.sleep(delay + random.uniform(0, min(0.5, delay / 4)))
+
     def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         last_error: Exception | None = None
         for attempt in range(self.retries + 1):

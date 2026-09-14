@@ -126,7 +126,15 @@ class AmazonAdapter(SourceAdapter):
             total = payload.get("hits") or payload.get("total_hits") or payload.get("total")
             if smoke and pages >= 2:
                 break
-            if not rows or len(rows) < limit or (isinstance(total, int) and scanned >= total):
+            if isinstance(total, int):
+                if scanned >= total:
+                    break
+                if len(rows) < limit:
+                    raise SourceError(
+                        "pagination_failure",
+                        f"Amazon pagination ended at {scanned} of {total} jobs",
+                    )
+            elif not rows or len(rows) < limit:
                 break
             if not page_ids:
                 raise SourceError("pagination_failure", "Amazon pagination repeated a page")
