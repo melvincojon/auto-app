@@ -58,16 +58,54 @@ class MonitorState:
         Returns whether the source recovered from one or more scan failures.
         """
         key = self._source_key(company)
-        previous = self.source_health.get(key, {})
+        previous = dict(self.source_health.get(key, {}))
         recovered = int(previous.get("consecutive_failures", 0)) > 0
         scanned_at = now or datetime.now(UTC)
-        self.source_health[key] = {
-            "last_successful_scan": scanned_at.isoformat(),
-            "consecutive_failures": 0,
-            "last_successful_job_count": len(jobs),
-            "last_successful_job_ids": [job.job_id for job in jobs],
-        }
+        previous.update(
+            {
+                "last_successful_scan": scanned_at.isoformat(),
+                "consecutive_failures": 0,
+                "last_successful_job_count": len(jobs),
+                "last_successful_job_ids": [job.job_id for job in jobs],
+                "consecutive_reconciliation_failures": 0,
+                "last_successful_reconciliation": scanned_at.isoformat(),
+            }
+        )
+        self.source_health[key] = previous
         return recovered
+
+    def record_discovery_success(self, company: str) -> bool:
+        """Clear a real source outage once discovery is usable again."""
+        key = self._source_key(company)
+        previous = dict(self.source_health.get(key, {}))
+        recovered = int(previous.get("consecutive_failures", 0)) > 0
+        previous["consecutive_failures"] = 0
+        self.source_health[key] = previous
+        return recovered
+
+    def record_reconciliation_failure(
+        self,
+        company: str,
+        error_message: str,
+        *,
+        now: datetime | None = None,
+    ) -> int:
+        """Track incomplete reconciliation without changing source outage state."""
+        key = self._source_key(company)
+        previous = dict(self.source_health.get(key, {}))
+        count = int(previous.get("consecutive_reconciliation_failures", 0)) + 1
+        failed_at = now or datetime.now(UTC)
+        previous.update(
+            {
+                "consecutive_reconciliation_failures": count,
+                "last_reconciliation_failure_at": failed_at.isoformat(),
+                "last_reconciliation_error": error_message,
+            }
+        )
+        if count == 1:
+            previous["reconciliation_failure_started_at"] = failed_at.isoformat()
+        self.source_health[key] = previous
+        return count
 
     def record_source_failure(
         self,

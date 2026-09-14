@@ -58,7 +58,7 @@ For a local dry run that prints notifications instead of contacting Discord:
 job-monitor run --state .state/jobs.json --dry-run
 ```
 
-The first successful run for each company seeds every current provider job ID and sends no backlog. Later runs hydrate newly observed postings, classify them, and notify once. Delete the local state file only when you intentionally want to reseed.
+The first successful run for each company seeds every current provider job ID and sends no backlog. Later runs hydrate newly observed postings, classify them, and notify once. Microsoft and Netflix use a split Eightfold pipeline: Microsoft checks the first 20 timestamp-sorted jobs and Netflix checks the first 50 provider-ordered jobs before the complete reconciliation crawl, so a late offset inconsistency cannot delay a valid discovery-window notification. Delete the local state file only when you intentionally want to reseed.
 
 ## GitHub Actions deployment
 
@@ -95,7 +95,9 @@ gh workflow run "New-grad job monitor" \
 This mode still runs the automated test suite first, but skips production
 source smoke tests, source polling, state restore, and state persistence.
 
-HTTP requests use a descriptive user agent, bounded exponential backoff for rate limits and transient 5xx responses, and strict structure/content validation. Each company is isolated. Non-200 responses, rate limiting, malformed content, schema drift, suspicious empty inventories, pagination failures, bootstrap/session failures, and versioned-contract failures become Discord health warnings and a failed Actions run after all other companies are checked.
+HTTP requests use a descriptive user agent, bounded exponential backoff for rate limits and transient 5xx responses, and strict structure/content validation. Each company is isolated. Non-200 responses, rate limiting, malformed content, schema drift, suspicious empty inventories, bootstrap/session failures, and versioned-contract failures become Discord health warnings and a failed Actions run after all other companies are checked.
+
+Eightfold discovery/seen state and authoritative inventory state are deliberately separate. A valid discovered job is marked seen after filtering and successful notification even if the later crawl drifts. Only an exact, overlap-validated, stable-total traversal replaces the last-known-good inventory used for counts or removals. Ordinary reconciliation drift is logged and persisted without marking the source unhealthy; it alerts after three consecutive incomplete reconciliations and then every twelfth, while real discovery/bootstrap/HTTP failures retain the normal outage and one-time recovery alerts.
 
 Meta’s Relay `doc_id` and Rippling’s public Algolia application/key/index are deployment-versioned. If either contract fails, the adapter stops and tells you to repeat the maintenance procedure in `SOURCE_DISCOVERY.md`; it does not guess a replacement.
 

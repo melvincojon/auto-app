@@ -50,8 +50,14 @@ Classification:
   `x-csrf-token` with the careers-page `Referer`. Calling the API without this
   bootstrap returned `429`; the same request with the anonymous session returned
   `200 application/json`.
-- Pagination: offset `start=0` and `start=10` each returned 10 records and
-  distinct first IDs. The live count was 2,142 during the final check.
+- Pagination: the frontend and API use offset `start`; responses are fixed at
+  10 records even when larger `num` values are supplied. `sort_by=timestamp`
+  is accepted, echoed by the API, and returns newest postings first. No cursor
+  or snapshot token is exposed. A September 14 live traversal changed between
+  2,246 and 2,247 advertised jobs and returned 22 duplicate IDs, confirming
+  that offsets can shift while the independently refreshed index changes.
+- Discovery checks the first 20 jobs (offsets 0 and 10) with the verified
+  `sort_by=timestamp` ordering before full reconciliation.
 - List fields: `id`, `displayJobId`, `atsJobId`, `name`, `locations`,
   `standardizedLocations`, `postedTs`, `creationTs`, `department`, and
   `positionUrl`.
@@ -107,7 +113,15 @@ ID, and rerun the smoke test. It must not silently guess another query ID.
 - Both routes returned anonymous `200 application/json`; cookies and CSRF were
   not required.
 - Pagination: `start=0` and `start=10` returned 10 records with distinct first
-  IDs. The count was 496–497 while jobs were changing during the checks.
+  IDs. Larger requested page sizes (20 through 1,000) were ignored and still
+  returned 10. No cursor is exposed and tested `sort_by` values were ignored.
+  The default order places a configured hot job first, then recent postings,
+  so it is useful for discovery but is not a strict creation-time ordering. A
+  September 14 full traversal completed at exactly 482 unique of 482 with a
+  stable first page; earlier checks changed between 496 and 497 while jobs were
+  changing.
+- Discovery checks the first 50 jobs (offsets 0, 10, 20, 30, and 40) before
+  full reconciliation to compensate for the lack of reliable server sorting.
 - List fields: `id`, `ats_job_id`, `display_job_id`, `name`, `locations`,
   `t_create`, `t_update`, department/business unit, and
   `canonicalPositionUrl`.

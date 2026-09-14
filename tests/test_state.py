@@ -56,6 +56,21 @@ def test_source_recovery_resets_consecutive_failures():
     assert state.source_health["acme"]["consecutive_failures"] == 0
 
 
+def test_reconciliation_failure_preserves_authoritative_snapshot_and_health():
+    state = MonitorState()
+    jobs = [make_job("1"), make_job("2")]
+    state.record_source_success("Acme", jobs)
+
+    count = state.record_reconciliation_failure("Acme", "offset shifted")
+
+    health = state.source_health["acme"]
+    assert count == 1
+    assert health["last_successful_job_ids"] == ["1", "2"]
+    assert health["last_successful_job_count"] == 2
+    assert health["consecutive_failures"] == 0
+    assert health["consecutive_reconciliation_failures"] == 1
+
+
 def test_identity_uses_company_and_provider_id():
     assert make_job().identity == make_job().identity
     assert make_job("43").identity != make_job().identity

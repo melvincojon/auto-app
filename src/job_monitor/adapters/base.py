@@ -26,6 +26,10 @@ class SourceAdapter(ABC):
     def list_jobs(self, *, smoke: bool = False) -> list[Job]:
         """Return normalized jobs. Descriptions may be absent until hydrate()."""
 
+    def discover_jobs(self) -> list[Job] | None:
+        """Return a fast discovery batch, or None when the source has no split scan."""
+        return None
+
     def hydrate(self, job: Job) -> Job:
         return job
 

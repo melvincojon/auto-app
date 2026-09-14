@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 from bs4 import BeautifulSoup
 
-from ..errors import SourceError
 from ..diagnostics import format_diagnostics, html_structure
+from ..errors import SourceError
 from ..models import Job
 from ..parsing import nested_find
 from .base import SourceAdapter
@@ -30,7 +30,247 @@ def _position_rows(payload: object) -> tuple[list[dict], int | None]:
     return [row for row in rows if isinstance(row, dict)], total if isinstance(total, int) else None
 
 
-class EightfoldPCSXAdapter(SourceAdapter):
+@dataclass(frozen=True)
+class _Page:
+    offset: int
+    jobs: list[Job]
+    total: int | None
+
+    @property
+    def ids(self) -> list[str]:
+        return [job.job_id for job in self.jobs]
+
+
+class _EightfoldOffsetAdapter(SourceAdapter):
+    provider_name = "Eightfold"
+
+    def __init__(self, config, http):
+        super().__init__(config, http)
+        self._discovery_pages: dict[int, _Page] = {}
+        self._poll_started = False
+
+    def _start_poll(self) -> None:
+        self._poll_started = True
+        self._discovery_pages = {}
+
+    def _page_headers(self) -> dict[str, str]:
+        return {}
+
+    def _limit(self) -> int:
+        pagination = self.config.require("pagination")
+        limit_param = pagination.get("limit_param", "num")
+        return int(
+            pagination.get(
+                "default_limit",
+                self.config.get("params", {}).get(limit_param, 10),
+            )
+        )
+
+    def _fetch_page(self, offset: int) -> _Page:
+        pagination = self.config.require("pagination")
+        params = {
+            **self.config.get("params", {}),
+            pagination.get("offset_param", "start"): offset,
+        }
+        response = self.http.request(
+            "GET",
+            self.config.require("endpoint"),
+            params=params,
+            headers=self._page_headers() or None,
+        )
+        rows, total = _position_rows(self.http.json(response))
+        jobs = [job_from_eightfold(self, row) for row in rows]
+        ids = [job.job_id for job in jobs]
+        if any(not job_id for job_id in ids):
+            raise SourceError("schema_change", f"{self.provider_name} page contains a missing job ID")
+        if len(ids) != len(set(ids)):
+            raise SourceError(
+                "reconciliation_inconsistency",
+                f"{self.provider_name} returned duplicate IDs within start={offset}",
+            )
+        logger.info(
+            "%s page start=%s returned=%s total=%s position_ids=%s",
+            self.provider_name,
+            offset,
+            len(jobs),
+            total,
+            ids[:5],
+        )
+        return _Page(offset, jobs, total)
+
+    def discover_jobs(self) -> list[Job]:
+        self._start_poll()
+        limit = self._limit()
+        page_count = max(1, int(self.config.get("discovery_pages", 2)))
+        discovered: list[Job] = []
+        seen: set[str] = set()
+        for page_number in range(page_count):
+            offset = page_number * limit
+            page = self._fetch_page(offset)
+            self._discovery_pages[offset] = page
+            for job in page.jobs:
+                if job.job_id in seen:
+                    logger.info(
+                        "%s discovery deduplicated job %s at start=%s",
+                        self.provider_name,
+                        job.job_id,
+                        offset,
+                    )
+                    continue
+                seen.add(job.job_id)
+                discovered.append(job)
+            if len(page.jobs) < limit:
+                break
+        return self._finish(discovered)
+
+    def _retry_page_with_total(self, offset: int, expected_total: int | None) -> _Page:
+        attempts = int(self.config.get("range_retries", 2)) + 1
+        page: _Page | None = None
+        for attempt in range(attempts):
+            page = self._fetch_page(offset)
+            if page.total == expected_total:
+                return page
+            if attempt + 1 < attempts:
+                self.http.sleep_before_retry(attempt)
+        assert page is not None
+        raise SourceError(
+            "reconciliation_inconsistency",
+            f"{self.provider_name} advertised total changed from "
+            f"{expected_total} to {page.total} at start={offset}",
+        )
+
+    def _repair_boundary(
+        self,
+        previous: _Page,
+        current: _Page,
+        *,
+        overlap: int,
+        expected_total: int | None,
+    ) -> tuple[_Page, _Page]:
+        attempts = int(self.config.get("range_retries", 2))
+        for attempt in range(attempts):
+            logger.warning(
+                "%s retrying shifted range starts=%s,%s attempt=%s",
+                self.provider_name,
+                previous.offset,
+                current.offset,
+                attempt + 1,
+            )
+            retried_previous = self._fetch_page(previous.offset)
+            retried_current = self._fetch_page(current.offset)
+            if (
+                retried_previous.total == expected_total
+                and retried_current.total == expected_total
+                and (
+                    overlap == 0
+                    or retried_previous.ids[-overlap:] == retried_current.ids[:overlap]
+                )
+            ):
+                return retried_previous, retried_current
+            if attempt + 1 < attempts:
+                self.http.sleep_before_retry(attempt)
+        raise SourceError(
+            "reconciliation_inconsistency",
+            f"{self.provider_name} offset boundary shifted between "
+            f"start={previous.offset} and start={current.offset}",
+        )
+
+    def _validate_pages(
+        self, pages: list[_Page], *, overlap: int, expected_total: int | None
+    ) -> list[Job]:
+        jobs: list[Job] = []
+        seen: set[str] = set()
+        for index, page in enumerate(pages):
+            expected_overlap: set[str] = set()
+            if index and overlap:
+                previous = pages[index - 1]
+                expected = previous.ids[-overlap:]
+                if page.ids[:overlap] != expected:
+                    raise SourceError(
+                        "reconciliation_inconsistency",
+                        f"{self.provider_name} overlap validation failed at start={page.offset}",
+                    )
+                expected_overlap = set(expected)
+            repeated = (set(page.ids) & seen) - expected_overlap
+            if repeated:
+                raise SourceError(
+                    "reconciliation_inconsistency",
+                    f"{self.provider_name} repeated IDs outside the expected overlap "
+                    f"at start={page.offset}: {sorted(repeated)[:5]}",
+                )
+            for job in page.jobs:
+                if job.job_id not in seen:
+                    seen.add(job.job_id)
+                    jobs.append(job)
+        if expected_total is not None and len(jobs) != expected_total:
+            raise SourceError(
+                "reconciliation_inconsistency",
+                f"{self.provider_name} reconciliation produced {len(jobs)} unique "
+                f"positions for advertised total {expected_total}",
+            )
+        return self._finish(jobs)
+
+    def list_jobs(self, *, smoke: bool = False) -> list[Job]:
+        if smoke:
+            return self.discover_jobs()
+        if not self._poll_started:
+            self._start_poll()
+
+        pagination = self.config.require("pagination")
+        limit = self._limit()
+        overlap = int(pagination.get("overlap", min(2, max(0, limit - 1))))
+        if overlap < 0 or overlap >= limit:
+            raise SourceError("configuration_drift", "Eightfold overlap must be between 0 and limit-1")
+        stride = limit - overlap
+
+        first = self._discovery_pages.get(0) or self._fetch_page(0)
+        expected_total = first.total
+        if expected_total is None:
+            raise SourceError(
+                "schema_change",
+                f"{self.provider_name} response has no advertised total",
+            )
+        pages = [first]
+        offset = stride
+        while offset < expected_total:
+            page = self._discovery_pages.get(offset)
+            if page is None or page.total != expected_total:
+                page = self._retry_page_with_total(offset, expected_total)
+            previous = pages[-1]
+            if overlap and previous.ids[-overlap:] != page.ids[:overlap]:
+                previous, page = self._repair_boundary(
+                    previous,
+                    page,
+                    overlap=overlap,
+                    expected_total=expected_total,
+                )
+                pages[-1] = previous
+            pages.append(page)
+            if offset + len(page.jobs) >= expected_total:
+                break
+            if len(page.jobs) < limit:
+                raise SourceError(
+                    "reconciliation_inconsistency",
+                    f"{self.provider_name} pagination ended early at start={offset}; "
+                    f"returned={len(page.jobs)} total={expected_total}",
+                )
+            offset += stride
+
+        final_anchor = self._retry_page_with_total(0, expected_total)
+        if final_anchor.ids != first.ids:
+            raise SourceError(
+                "reconciliation_inconsistency",
+                f"{self.provider_name} first page changed during reconciliation",
+            )
+        result = self._validate_pages(pages, overlap=overlap, expected_total=expected_total)
+        self._poll_started = False
+        self._discovery_pages = {}
+        return result
+
+
+class EightfoldPCSXAdapter(_EightfoldOffsetAdapter):
+    provider_name = "Microsoft"
+
     def __init__(self, config, http):
         super().__init__(config, http)
         self._csrf: str | None = None
@@ -57,7 +297,13 @@ class EightfoldPCSXAdapter(SourceAdapter):
             raise SourceError("bootstrap_failure", "Microsoft CSRF meta token is missing")
         self._csrf = str(token)
 
-    def _headers(self) -> dict[str, str]:
+    def _start_poll(self) -> None:
+        self.http.clear_cookies()
+        self._csrf = None
+        self._bootstrap()
+        super()._start_poll()
+
+    def _page_headers(self) -> dict[str, str]:
         if not self._csrf:
             self._bootstrap()
         bootstrap = self.config.require("session_bootstrap")
@@ -65,86 +311,14 @@ class EightfoldPCSXAdapter(SourceAdapter):
             str(bootstrap.get("request_header", "x-csrf-token")): str(self._csrf),
             "Referer": str(bootstrap["referer"]),
             "Accept": "application/json",
+            "Cache-Control": "no-cache",
         }
-
-    def _scan_jobs(self, *, smoke: bool = False) -> list[Job]:
-        # The shared client outlives adapters. Start each Microsoft polling scan
-        # anonymously so an expired Eightfold session cannot poison pagination.
-        self.http.clear_cookies()
-        self._csrf = None
-        self._bootstrap()
-        pagination = self.config.require("pagination")
-        limit = int(pagination.get("default_limit", self.config.get("params", {}).get("num", 10)))
-        offset = 0
-        pages = 0
-        seen: set[str] = set()
-        jobs: list[Job] = []
-        while True:
-            params = {**self.config.get("params", {}), pagination.get("offset_param", "start"): offset}
-            response = self.http.request(
-                "GET",
-                self.config.require("endpoint"),
-                params=params,
-                headers={**self._headers(), "Cache-Control": "no-cache"},
-            )
-            payload = self.http.json(response)
-            rows, total = _position_rows(payload)
-            first_ids = [str(row.get("id") or row.get("positionId") or "") for row in rows[:5]]
-            logger.info(
-                "Microsoft page start=%s final_url=%s position_ids=%s",
-                offset,
-                response.url,
-                first_ids,
-            )
-            page_new = 0
-            for row in rows:
-                job = job_from_eightfold(self, row)
-                if job.job_id and job.job_id not in seen:
-                    seen.add(job.job_id)
-                    jobs.append(job)
-                    page_new += 1
-            pages += 1
-            if smoke and pages >= 2:
-                break
-            if total is not None:
-                if len(jobs) >= total:
-                    break
-                if len(rows) < limit:
-                    raise SourceError(
-                        "pagination_failure",
-                        f"Microsoft pagination ended at {len(jobs)} of {total} positions; start={offset}",
-                    )
-            elif len(rows) < limit:
-                break
-            if page_new == 0:
-                raise SourceError(
-                    "pagination_failure",
-                    f"Microsoft pagination repeated start={offset}; first position IDs: {first_ids}",
-                )
-            offset += limit
-        return self._finish(jobs)
-
-    def list_jobs(self, *, smoke: bool = False) -> list[Job]:
-        attempts = 1 if smoke else int(self.config.get("scan_retries", 1)) + 1
-        for attempt in range(attempts):
-            try:
-                return self._scan_jobs(smoke=smoke)
-            except SourceError as exc:
-                if exc.code != "pagination_failure" or attempt + 1 == attempts:
-                    raise
-                logger.warning(
-                    "Microsoft restarting full scan after pagination inconsistency attempt=%s: %s",
-                    attempt + 1,
-                    exc,
-                )
-                self.http.sleep_before_retry(attempt)
-        raise SourceError("pagination_failure", "Microsoft scan retry exhausted")
 
     def hydrate(self, job: Job) -> Job:
         detail = self.config.require("detail")
         params = {**detail.get("params", {}), detail.get("id_param", "position_id"): job.job_id}
         response = self.http.request(
-            "GET", detail["endpoint"], params=params, headers=self._headers()
+            "GET", detail["endpoint"], params=params, headers=self._page_headers()
         )
         payload = self.http.json(response)
         row = payload.get("data", payload) if isinstance(payload, dict) else None
@@ -163,44 +337,8 @@ class EightfoldPCSXAdapter(SourceAdapter):
         )
 
 
-class EightfoldApplyV2Adapter(SourceAdapter):
-    def list_jobs(self, *, smoke: bool = False) -> list[Job]:
-        pagination = self.config.require("pagination")
-        base_params = self.config.get("params", {})
-        limit = int(base_params.get(pagination.get("limit_param", "num"), 10))
-        offset = 0
-        pages = 0
-        jobs: list[Job] = []
-        seen: set[str] = set()
-        while True:
-            params = {**base_params, pagination.get("offset_param", "start"): offset}
-            response = self.http.request("GET", self.config.require("endpoint"), params=params)
-            payload = self.http.json(response)
-            rows, total = _position_rows(payload)
-            page_new = 0
-            for row in rows:
-                job = job_from_eightfold(self, row)
-                if job.job_id and job.job_id not in seen:
-                    seen.add(job.job_id)
-                    jobs.append(job)
-                    page_new += 1
-            pages += 1
-            if smoke and pages >= 2:
-                break
-            if total is not None:
-                if len(jobs) >= total:
-                    break
-                if len(rows) < limit:
-                    raise SourceError(
-                        "pagination_failure",
-                        f"Netflix pagination ended at {len(jobs)} of {total} positions; start={offset}",
-                    )
-            elif len(rows) < limit:
-                break
-            if page_new == 0:
-                raise SourceError("pagination_failure", "Netflix pagination repeated a page")
-            offset += limit
-        return self._finish(jobs)
+class EightfoldApplyV2Adapter(_EightfoldOffsetAdapter):
+    provider_name = "Netflix"
 
     def hydrate(self, job: Job) -> Job:
         detail = self.config.require("detail")

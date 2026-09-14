@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
+import httpx
+
+from job_monitor.adapters.eightfold import EightfoldApplyV2Adapter
 from job_monitor.config import CompanyConfig
 from job_monitor.errors import NotificationError, SourceError
 from job_monitor.models import Job
@@ -44,6 +47,18 @@ class FakeAdapter:
 
     def _validate_job(self, job, require_description=False):
         return None
+
+
+class SplitAdapter(FakeAdapter):
+    def __init__(self, discovery=None, **kwargs):
+        super().__init__(**kwargs)
+        self.discovery = discovery or []
+        self.discovery_failure = None
+
+    def discover_jobs(self):
+        if self.discovery_failure:
+            raise self.discovery_failure
+        return self.discovery
 
 
 def cfg(name):
@@ -304,3 +319,177 @@ def test_notification_failure_is_not_quarantined_and_remains_retryable(monkeypat
     assert adapter.hydrate_calls == 2
     assert state.job_failures == {}
     assert not state.has_seen(adapter.jobs[0])
+
+
+def test_discovery_notifies_before_failed_reconciliation_and_preserves_snapshot(monkeypatch):
+    new_job = job("Acme", "3")
+    adapter = SplitAdapter(
+        discovery=[new_job],
+        failure=SourceError("reconciliation_inconsistency", "shifted late offset"),
+    )
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    old_jobs = [job("Acme", "1"), job("Acme", "2")]
+    state = seeded_state()
+    state.seed("Acme", old_jobs)
+    state.record_source_success("Acme", old_jobs)
+    snapshot = dict(state.source_health["acme"])
+    notifier = RecordingNotifier()
+
+    report = run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert report.notifications == 1
+    assert state.has_seen(new_job)
+    assert len(notifier.jobs) == 1
+    health = state.source_health["acme"]
+    assert health["last_successful_scan"] == snapshot["last_successful_scan"]
+    assert health["last_successful_job_ids"] == ["1", "2"]
+    assert health["last_successful_job_count"] == 2
+    assert health["consecutive_reconciliation_failures"] == 1
+    assert notifier.health == []
+
+
+def test_discovery_job_from_failed_reconciliation_is_not_notified_again(monkeypatch):
+    new_job = job("Acme", "2")
+    adapter = SplitAdapter(
+        discovery=[new_job],
+        failure=SourceError("reconciliation_inconsistency", "shifted late offset"),
+    )
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = seeded_state()
+    state.seed("Acme", [job("Acme", "1")])
+    notifier = RecordingNotifier()
+
+    run_monitor([cfg("Acme")], state, notifier, object())
+    adapter.failure = None
+    adapter.jobs = [job("Acme", "1"), new_job]
+    second = run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert second.notifications == 0
+    assert len(notifier.jobs) == 1
+    assert state.source_health["acme"]["last_successful_job_ids"] == ["1", "2"]
+
+
+def test_job_on_later_netflix_discovery_page_notifies_before_reconciliation_failure(
+    monkeypatch, make_http
+):
+    def handler(req):
+        if req.url.path.endswith("/50"):
+            return httpx.Response(
+                200,
+                json={"id": "50", "name": "Software Engineer", "job_description": "New graduate role", "canonicalPositionUrl": "https://job/50"},
+                request=req,
+                headers={"content-type": "application/json"},
+            )
+        start = int(req.url.params["start"])
+        if start in {0, 10, 20, 30, 40}:
+            ids = range(start + 1, start + 11)
+        else:
+            ids = range(100, 110)
+        rows = [{"id": str(value), "name": "Software Engineer", "canonicalPositionUrl": f"https://job/{value}"} for value in ids]
+        return httpx.Response(
+            200,
+            json={"positions": rows, "count": 60},
+            request=req,
+            headers={"content-type": "application/json"},
+        )
+
+    adapter = EightfoldApplyV2Adapter(
+        CompanyConfig(
+            "Acme",
+            "eightfold_apply_v2",
+            {
+                "company": "Acme",
+                "adapter": "eightfold_apply_v2",
+                "endpoint": "https://x/api/jobs",
+                "discovery_pages": 5,
+                "range_retries": 0,
+                "params": {"domain": "acme.com", "num": 10},
+                "pagination": {"offset_param": "start", "limit_param": "num", "default_limit": 10, "overlap": 2},
+                "detail": {"url_template": "https://x/api/jobs/{id}"},
+            },
+        ),
+        make_http(handler),
+    )
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    old_jobs = [job("Acme", str(value)) for value in range(1, 50)]
+    state = seeded_state()
+    state.seed("Acme", old_jobs)
+    state.record_source_success("Acme", old_jobs)
+    notifier = RecordingNotifier()
+
+    report = run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert report.notifications == 1
+    assert notifier.jobs[0][0].job_id == "50"
+    assert state.has_seen(job("Acme", "50"))
+    assert state.source_health["acme"]["last_successful_job_ids"] == [
+        str(value) for value in range(1, 50)
+    ]
+
+
+def test_discovery_and_same_poll_reconciliation_notify_once(monkeypatch):
+    new_job = job("Acme", "2")
+    adapter = SplitAdapter(
+        discovery=[new_job],
+        jobs=[job("Acme", "1"), new_job],
+    )
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = seeded_state()
+    state.seed("Acme", [job("Acme", "1")])
+    notifier = RecordingNotifier()
+
+    report = run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert report.notifications == 1
+    assert len(notifier.jobs) == 1
+    assert adapter.hydrate_calls == 1
+
+
+def test_failed_discovery_notification_remains_retryable(monkeypatch):
+    new_job = job("Acme", "2")
+    adapter = SplitAdapter(discovery=[new_job], jobs=[new_job])
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = seeded_state()
+    notifier = RecordingNotifier(NotificationError("Discord unavailable"))
+
+    run_monitor([cfg("Acme")], state, notifier, object())
+    run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert adapter.hydrate_calls == 2
+    assert not state.has_seen(new_job)
+
+
+def test_repeated_reconciliation_drift_does_not_flap_source_health(monkeypatch):
+    adapter = SplitAdapter(
+        discovery=[job("Acme", "1")],
+        failure=SourceError("reconciliation_inconsistency", "live offset drift"),
+    )
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = seeded_state()
+    notifier = RecordingNotifier()
+
+    for _ in range(5):
+        run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert [warning.code for warning in notifier.health] == ["reconciliation_inconsistency"]
+    assert state.source_health["acme"]["consecutive_failures"] == 0
+    assert state.source_health["acme"]["consecutive_reconciliation_failures"] == 5
+    assert all(warning.code != "source_recovered" for warning in notifier.health)
+
+
+def test_true_discovery_outage_alerts_and_recovers_once(monkeypatch):
+    adapter = SplitAdapter(discovery=[job("Acme", "1")], jobs=[job("Acme", "1")])
+    adapter.discovery_failure = SourceError("bootstrap_failure", "CSRF token missing")
+    monkeypatch.setattr("job_monitor.runner.build_adapter", lambda config, http: adapter)
+    state = seeded_state()
+    notifier = RecordingNotifier()
+
+    run_monitor([cfg("Acme")], state, notifier, object())
+    adapter.discovery_failure = None
+    run_monitor([cfg("Acme")], state, notifier, object())
+    run_monitor([cfg("Acme")], state, notifier, object())
+
+    assert [warning.code for warning in notifier.health] == [
+        "bootstrap_failure",
+        "source_recovered",
+    ]

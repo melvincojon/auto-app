@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 
 from .adapters import build_adapter
@@ -10,6 +11,9 @@ from .http import HttpClient
 from .models import HealthWarning
 from .notifier import Notifier
 from .state import MonitorState
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -48,6 +52,51 @@ def _source_failed(
         )
 
 
+def _process_unseen_jobs(
+    report: RunReport,
+    state: MonitorState,
+    notifier: Notifier,
+    company: CompanyConfig,
+    adapter,
+    jobs,
+    attempted: set[str],
+) -> None:
+    for listing in jobs:
+        if state.has_seen(listing) or listing.identity in attempted:
+            continue
+        if state.is_job_quarantined(listing):
+            continue
+        attempted.add(listing.identity)
+        report.new_jobs += 1
+        identity_job = listing
+        try:
+            job = adapter.hydrate(listing)
+            adapter._validate_job(job, require_description=False)
+            match = classify(job)
+            state.clear_job_failure(identity_job)
+            if match is not None:
+                notifier.notify_job(job, match)
+                report.notifications += 1
+            state.mark_seen(identity_job)
+        except NotificationError as exc:
+            _warn(report, HealthWarning(company.company, "notification_failure", str(exc)))
+        except SourceError as exc:
+            if state.record_job_failure(identity_job, exc.code, str(exc)):
+                _warn(
+                    report,
+                    HealthWarning(company.company, exc.code, f"job {listing.job_id}: {exc}"),
+                )
+        except Exception as exc:
+            _warn(
+                report,
+                HealthWarning(
+                    company.company,
+                    "unexpected_failure",
+                    f"job {listing.job_id}: {exc}",
+                ),
+            )
+
+
 def run_monitor(
     companies: list[CompanyConfig],
     state: MonitorState,
@@ -56,8 +105,18 @@ def run_monitor(
 ) -> RunReport:
     report = RunReport()
     for company in companies:
+        attempted: set[str] = set()
+        split_scan = False
         try:
             adapter = build_adapter(company, http)
+            discover = getattr(adapter, "discover_jobs", None)
+            discovery = discover() if discover is not None else None
+            split_scan = discovery is not None
+            if split_scan and state.is_seeded(company.company):
+                _process_unseen_jobs(
+                    report, state, notifier, company, adapter, discovery, attempted
+                )
+
             jobs = adapter.list_jobs()
             report.checked_companies += 1
             if state.record_source_success(company.company, jobs):
@@ -72,40 +131,37 @@ def run_monitor(
                 state.seed(company.company, jobs)
                 report.seeded_companies.append(company.company)
                 continue
-
-            for listing in jobs:
-                if state.has_seen(listing):
-                    continue
-                if state.is_job_quarantined(listing):
-                    continue
-                report.new_jobs += 1
-                identity_job = listing
-                try:
-                    job = adapter.hydrate(listing)
-                    adapter._validate_job(job, require_description=False)
-                    match = classify(job)
-                    state.clear_job_failure(identity_job)
-                    if match is not None:
-                        notifier.notify_job(job, match)
-                        report.notifications += 1
-                    state.mark_seen(identity_job)
-                except NotificationError as exc:
-                    _warn(report,
-                        HealthWarning(company.company, "notification_failure", str(exc))
-                    )
-                except SourceError as exc:
-                    if state.record_job_failure(
-                        identity_job, exc.code, str(exc)
-                    ):
-                        _warn(report,
-                            HealthWarning(company.company, exc.code, f"job {listing.job_id}: {exc}")
-                        )
-                except Exception as exc:
-                    _warn(report,
-                        HealthWarning(company.company, "unexpected_failure", f"job {listing.job_id}: {exc}")
-                    )
+            _process_unseen_jobs(report, state, notifier, company, adapter, jobs, attempted)
         except SourceError as exc:
-            _source_failed(report, state, company.company, exc.code, str(exc))
+            if exc.code == "reconciliation_inconsistency" and split_scan:
+                report.checked_companies += 1
+                count = state.record_reconciliation_failure(company.company, str(exc))
+                logger.warning(
+                    "%s reconciliation incomplete (consecutive=%s): %s",
+                    company.company,
+                    count,
+                    exc,
+                )
+                if state.record_discovery_success(company.company):
+                    report.health_notifications.append(
+                        HealthWarning(
+                            company.company,
+                            "source_recovered",
+                            "Source discovery recovered; reconciliation is still protected.",
+                        )
+                    )
+                # Reconciliation drift becomes actionable only after it persists.
+                if count == 3 or count % 12 == 0:
+                    warning = HealthWarning(
+                        company.company,
+                        "reconciliation_inconsistency",
+                        f"Full reconciliation remains incomplete: {exc} "
+                        f"(consecutive scans: {count}). Discovery remains operational; "
+                        "the authoritative snapshot was preserved.",
+                    )
+                    _warn(report, warning)
+            else:
+                _source_failed(report, state, company.company, exc.code, str(exc))
         except Exception as exc:
             _source_failed(report, state, company.company, "unexpected_failure", str(exc))
 

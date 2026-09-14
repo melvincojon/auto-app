@@ -39,7 +39,8 @@ companies:
     careers_url: https://apply.careers.microsoft.com/careers
     endpoint: https://apply.careers.microsoft.com/api/pcsx/search
     method: GET
-    scan_retries: 1
+    discovery_pages: 2
+    range_retries: 2
     session_bootstrap:
       url: https://apply.careers.microsoft.com/careers
       csrf_meta_name: _csrf
@@ -49,10 +50,12 @@ companies:
     params:
       domain: microsoft.com
       num: 10
+      sort_by: timestamp
     pagination:
       type: offset
       offset_param: start
       default_limit: 10
+      overlap: 2
     detail:
       endpoint: https://apply.careers.microsoft.com/api/pcsx/position_details
       id_param: position_id
@@ -189,6 +192,8 @@ companies:
     careers_url: https://explore.jobs.netflix.net/careers
     endpoint: https://explore.jobs.netflix.net/api/apply/v2/jobs
     method: GET
+    discovery_pages: 5
+    range_retries: 2
     params:
       domain: netflix.com
       num: 10
@@ -197,6 +202,7 @@ companies:
       offset_param: start
       limit_param: num
       default_limit: 10
+      overlap: 2
     detail:
       url_template: https://explore.jobs.netflix.net/api/apply/v2/jobs/{id}
       params:
