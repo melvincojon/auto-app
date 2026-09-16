@@ -32831,6 +32831,11 @@
       "first_seen_at": "2026-09-08T21:52:48.546105+00:00",
       "job_id": "702acd09-edf7-406a-90b2-c903700db394"
     },
+    "4d7c6af32f92804aad0e9df8c74c21761a791ae003a02f5852dd916cc3efef71": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-16T03:48:34.565966+00:00",
+      "job_id": "d3a3827f-a538-4762-a694-a945af514a89"
+    },
     "4d7f5d6534866e1ed1285f4d848524fffd56e2481db79a6cd59983ef21047269": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.569144+00:00",
@@ -80216,6 +80221,11 @@
       "first_seen_at": "2026-09-08T21:52:48.565332+00:00",
       "job_id": "b6277abf-f0e9-4edd-b631-30f8206ff3d9"
     },
+    "bceec870d27f51f512065b7de6bcca5c7323c7334e0db5e2d4e28a72a494cc3c": {
+      "company": "Amazon",
+      "first_seen_at": "2026-09-16T03:48:34.565083+00:00",
+      "job_id": "3d4b3b71-052d-4992-8a77-32096f755f93"
+    },
     "bcf13e16a38dba80ac3abc4b248114b5aaaa887de6759c15033dd4bf8e0809c2": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.559900+00:00",
@@ -93800,6 +93810,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.548439+00:00",
       "job_id": "d86c48c9-df46-4d2e-892d-c208443775ce"
+    },
+    "dc77d1500c9d74124b00fe4ac0b140205aa2c7273276471623d2009f8b078482": {
+      "company": "Ramp",
+      "first_seen_at": "2026-09-16T03:50:41.327064+00:00",
+      "job_id": "8f3c27f0-50fb-47ba-a3dd-597428380843"
     },
     "dc790556c928b94a5576e504bd24e0151fdcbafeecf41a2f645b4c8cd86206b0": {
       "company": "Microsoft",
@@ -109622,14 +109637,15 @@
         "8120259",
         "8079378"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:18.302452+00:00",
-      "last_successful_scan": "2026-09-16T03:41:18.302452+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:50:23.138132+00:00",
+      "last_successful_scan": "2026-09-16T03:50:23.138132+00:00"
     },
     "amazon": {
       "consecutive_failures": 0,
       "consecutive_reconciliation_failures": 0,
       "last_successful_job_count": 10000,
       "last_successful_job_ids": [
+        "3d4b3b71-052d-4992-8a77-32096f755f93",
         "d5a6aa8b-e8e9-4ac9-914d-9cc106eb66f9",
         "a6949faa-362c-4878-bdc6-00fd46c259b4",
         "5130e208-7812-411d-bb28-a40f66a59af8",
@@ -110181,6 +110197,7 @@
         "232c85fd-455b-4a07-b6b7-715e767892c8",
         "267f4903-47ad-4fc3-a045-0828d0d8fc7c",
         "02b28e90-0543-4cb7-9f54-bbaef67bcc25",
+        "d3a3827f-a538-4762-a694-a945af514a89",
         "6b1130f8-cc0f-4c5d-b11b-b6ced09a6f14",
         "3642a5c3-a39c-458d-a1f8-20a1fb085c6a",
         "fcf96ded-093a-4302-99dc-6483a14b5ea5",
@@ -119627,12 +119644,10 @@
         "5879ba1a-f6b4-4efe-98db-057166cbd7c0",
         "d909d562-2cd4-4153-949d-4d8c7b410df0",
         "052f8ecc-d88c-46d1-88dd-472215dd72d8",
-        "6ee00735-223c-42e3-85c2-9568138dbb60",
-        "cfce388c-4ccb-46df-b90f-b594f48a939e",
-        "783af266-9c12-49a4-ac23-4d4e1398eaa1"
+        "6ee00735-223c-42e3-85c2-9568138dbb60"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:38:37.237964+00:00",
-      "last_successful_scan": "2026-09-16T03:38:37.237964+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:48:34.564452+00:00",
+      "last_successful_scan": "2026-09-16T03:48:34.564452+00:00"
     },
     "block": {
       "consecutive_failures": 0,
@@ -119859,8 +119874,8 @@
         "5406146008",
         "5314837008"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:40:27.523480+00:00",
-      "last_successful_scan": "2026-09-16T03:40:27.523480+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:49:38.678750+00:00",
+      "last_successful_scan": "2026-09-16T03:49:38.678750+00:00"
     },
     "bloomberg": {
       "consecutive_failures": 0,
@@ -120226,8 +120241,8 @@
         "13711",
         "12444"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:39:20.797398+00:00",
-      "last_successful_scan": "2026-09-16T03:39:20.797398+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:49:14.920826+00:00",
+      "last_successful_scan": "2026-09-16T03:49:14.920826+00:00"
     },
     "coinbase": {
       "consecutive_failures": 0,
@@ -120449,8 +120464,8 @@
         "8142975",
         "8175360"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:40:29.593775+00:00",
-      "last_successful_scan": "2026-09-16T03:40:29.593775+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:49:39.361651+00:00",
+      "last_successful_scan": "2026-09-16T03:49:39.361651+00:00"
     },
     "databricks": {
       "consecutive_failures": 0,
@@ -121343,8 +121358,8 @@
         "7295190002",
         "8628958002"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:17.722661+00:00",
-      "last_successful_scan": "2026-09-16T03:41:17.722661+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:50:22.508281+00:00",
+      "last_successful_scan": "2026-09-16T03:50:22.508281+00:00"
     },
     "datadog": {
       "consecutive_failures": 0,
@@ -121803,8 +121818,8 @@
         "6759702",
         "6761448"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:40:25.353276+00:00",
-      "last_successful_scan": "2026-09-16T03:40:25.353276+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:49:36.400422+00:00",
+      "last_successful_scan": "2026-09-16T03:49:36.400422+00:00"
     },
     "intuit": {
       "consecutive_failures": 0,
@@ -122327,8 +122342,8 @@
         "99368305536",
         "99368305520"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:14.081518+00:00",
-      "last_successful_scan": "2026-09-16T03:41:14.081518+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:50:17.821580+00:00",
+      "last_successful_scan": "2026-09-16T03:50:17.821580+00:00"
     },
     "meta": {
       "consecutive_failures": 0,
@@ -123313,17 +123328,17 @@
         "26024270537191968",
         "1650887963003826"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:15.270817+00:00",
-      "last_successful_scan": "2026-09-16T03:41:15.270817+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:50:19.581405+00:00",
+      "last_successful_scan": "2026-09-16T03:50:19.581405+00:00"
     },
     "microsoft": {
       "consecutive_failures": 0,
-      "consecutive_reconciliation_failures": 0,
+      "consecutive_reconciliation_failures": 1,
       "last_error_code": "pagination_failure",
       "last_error_message": "Microsoft pagination ended at 2234 of 2250 positions; start=2250",
       "last_failure_at": "2026-09-14T21:40:58.740435+00:00",
-      "last_reconciliation_error": "Microsoft advertised total changed from 2316 to 2317 at start=8",
-      "last_reconciliation_failure_at": "2026-09-16T03:19:30.126224+00:00",
+      "last_reconciliation_error": "Microsoft offset boundary shifted between start=600 and start=608",
+      "last_reconciliation_failure_at": "2026-09-16T03:49:34.888680+00:00",
       "last_successful_job_count": 2317,
       "last_successful_job_ids": [
         "1970393556943185",
@@ -125646,7 +125661,7 @@
       ],
       "last_successful_reconciliation": "2026-09-16T03:40:23.877573+00:00",
       "last_successful_scan": "2026-09-16T03:40:23.877573+00:00",
-      "reconciliation_failure_started_at": "2026-09-16T03:19:30.126224+00:00"
+      "reconciliation_failure_started_at": "2026-09-16T03:49:34.888680+00:00"
     },
     "netflix": {
       "consecutive_failures": 0,
@@ -126137,8 +126152,8 @@
         "790298020581",
         "790298021069"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:35.958599+00:00",
-      "last_successful_scan": "2026-09-16T03:41:35.958599+00:00",
+      "last_successful_reconciliation": "2026-09-16T03:50:40.282056+00:00",
+      "last_successful_scan": "2026-09-16T03:50:40.282056+00:00",
       "reconciliation_failure_started_at": "2026-09-16T02:59:54.133532+00:00"
     },
     "notion": {
@@ -126274,13 +126289,13 @@
         "866dc41d-3a50-4957-9a14-df27eae847e8",
         "0439c4a6-7a8e-4ffa-8cfd-28ce373acbd5"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:36.405621+00:00",
-      "last_successful_scan": "2026-09-16T03:41:36.405621+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:50:40.676077+00:00",
+      "last_successful_scan": "2026-09-16T03:50:40.676077+00:00"
     },
     "ramp": {
       "consecutive_failures": 0,
       "consecutive_reconciliation_failures": 0,
-      "last_successful_job_count": 147,
+      "last_successful_job_count": 148,
       "last_successful_job_ids": [
         "34413f8d-26bf-4bbc-8ade-eb309a0e2245",
         "f564dcf9-9390-4a3f-896f-8047a5086040",
@@ -126387,6 +126402,7 @@
         "70958953-f10f-4dba-a606-80a10f80a8f6",
         "7fcef38b-5e90-4d71-9e59-d26d29de027f",
         "f65b0f22-e2b1-4081-b4db-a4a0b0e31055",
+        "8f3c27f0-50fb-47ba-a3dd-597428380843",
         "4e9886c1-134b-4cc7-9bcf-eb56bd0ca71f",
         "f859c941-4579-402a-aad5-a7bacbf33175",
         "881f9f7d-9ec5-4b69-b50d-a67000264ca8",
@@ -126430,8 +126446,8 @@
         "aa433e44-f095-484b-a46a-a330583d84b0",
         "9916e9da-7491-4c99-afd1-e4b8158fa58b"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:37.036554+00:00",
-      "last_successful_scan": "2026-09-16T03:41:37.036554+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:50:41.326570+00:00",
+      "last_successful_scan": "2026-09-16T03:50:41.326570+00:00"
     },
     "rippling": {
       "consecutive_failures": 0,
@@ -126773,8 +126789,8 @@
         "43c8b8ab-d034-4351-8a7b-446070e609a3",
         "1f6a63c7-8eec-42fd-bbea-c5f410cbf9e1"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:41:37.351091+00:00",
-      "last_successful_scan": "2026-09-16T03:41:37.351091+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:50:41.460881+00:00",
+      "last_successful_scan": "2026-09-16T03:50:41.460881+00:00"
     },
     "robinhood": {
       "consecutive_failures": 0,
@@ -126935,13 +126951,13 @@
         "7543005",
         "7543003"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:40:26.717193+00:00",
-      "last_successful_scan": "2026-09-16T03:40:26.717193+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:49:37.793532+00:00",
+      "last_successful_scan": "2026-09-16T03:49:37.793532+00:00"
     },
     "snowflake": {
       "consecutive_failures": 0,
       "consecutive_reconciliation_failures": 0,
-      "last_successful_job_count": 352,
+      "last_successful_job_count": 350,
       "last_successful_job_ids": [
         "479e06f1-273d-4a1b-af56-6543761ebd75",
         "db1375f0-ea5d-404a-b640-259f94dbc995",
@@ -127223,7 +127239,6 @@
         "04559598-b320-4bcd-ace8-fb9cc551a02c",
         "68b45abb-f1d6-46b2-a30e-c551076e7e7e",
         "60dbe8f9-4b0f-4edf-818d-f069d9323171",
-        "b045d3f3-d718-480c-8c18-2b0ee91c84af",
         "c25ed96e-b4cb-4394-a8a0-f613e9ade710",
         "cbc2087c-f5fc-48b7-8d23-114836a42e3e",
         "96cb8446-dc3b-44e7-ac7c-99c94eeae8da",
@@ -127289,15 +127304,14 @@
         "d576a5a4-1409-45fa-b710-db8d52041551",
         "7576ec7f-01c9-41b9-b451-8cd43e62bf3b",
         "1c90dd70-ffa8-4a50-844d-00a3e8726bd3",
-        "d61bd4d8-d04b-46b8-b087-ca952dfe5c87",
         "37e1160c-6cc2-4aa3-91f1-a366ebb3b828",
         "483f8567-6fa9-443d-baf7-83775a07da7d",
         "8db8d9ae-e35c-4e1d-9bd0-078627de3bd1",
         "0e1ea0b0-bf78-46e6-94d4-673d586271a1",
         "33fd86f7-79e4-4180-9726-23f9ae76a804"
       ],
-      "last_successful_reconciliation": "2026-09-16T03:40:26.219586+00:00",
-      "last_successful_scan": "2026-09-16T03:40:26.219586+00:00"
+      "last_successful_reconciliation": "2026-09-16T03:49:37.255261+00:00",
+      "last_successful_scan": "2026-09-16T03:49:37.255261+00:00"
     }
   },
   "version": 1
