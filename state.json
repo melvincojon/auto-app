@@ -72676,6 +72676,11 @@
       "first_seen_at": "2026-09-23T18:58:57.468011+00:00",
       "job_id": "4cea59fe-73c2-4585-8410-75ebaefcaa88"
     },
+    "43bffd240bcc909301b91aab4db2204b9d648654032f50f0cb13e04ba41240a2": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-11-19T23:01:39.552875+00:00",
+      "job_id": "1970393557070470"
+    },
     "43c147c0928c0243638d3524fe6d4fb762474c316867b77fe6c848ca3c44cd92": {
       "company": "Amazon",
       "first_seen_at": "2026-09-08T21:52:48.547202+00:00",
@@ -80490,6 +80495,11 @@
       "company": "Amazon",
       "first_seen_at": "2026-11-09T18:01:05.849460+00:00",
       "job_id": "b8d548d4-68d5-42a6-a8eb-425e38fca5c6"
+    },
+    "4b3bbedea9d6974d38cafe16204625b915cf1f3af914feed0d41a51f5be8f7b0": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-11-19T23:01:39.834848+00:00",
+      "job_id": "1970393557071177"
     },
     "4b3d03608ccaea2df4a8b05a4e61e9804589b0946d811ae0e550abe1703a90e7": {
       "company": "Microsoft",
@@ -221236,6 +221246,11 @@
       "first_seen_at": "2026-09-08T21:54:12.002205+00:00",
       "job_id": "8052118"
     },
+    "d00f0f70367c00ff9baf4735a099261c43917f58eed9e3e56cf5ace2b8faf9fc": {
+      "company": "Microsoft",
+      "first_seen_at": "2026-11-19T23:01:39.063748+00:00",
+      "job_id": "1970393557076110"
+    },
     "d00f6bc9affc61ce66bc6ebceebf9e0a31b23505608f97774a0d001e287ccede": {
       "company": "Amazon",
       "first_seen_at": "2026-10-05T14:29:26.920604+00:00",
@@ -273420,8 +273435,8 @@
         "8312713",
         "8349111"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:53:19.964804+00:00",
-      "last_successful_scan": "2026-11-19T22:53:19.964804+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:02:11.366619+00:00",
+      "last_successful_scan": "2026-11-19T23:02:11.366619+00:00"
     },
     "amazon": {
       "consecutive_failures": 0,
@@ -273429,7 +273444,7 @@
       "last_error_code": "unexpected_json",
       "last_error_message": "response body is not valid JSON",
       "last_failure_at": "2026-10-08T16:48:32.100020+00:00",
-      "last_successful_job_count": 10000,
+      "last_successful_job_count": 9999,
       "last_successful_job_ids": [
         "7256120d-d3c7-4416-9c33-e6ad353545be",
         "d8964162-6381-41a8-b8c2-7339525482af",
@@ -283429,11 +283444,10 @@
         "1aa8a804-0b54-4629-84c6-118e136558d7",
         "2d5bf1f7-c7a1-4075-ab69-4e0d983a8dc7",
         "3a2d0da4-8235-4a9e-81e3-41ffff3c6b02",
-        "e0ee3467-9404-42d8-9e51-057894c4555c",
-        "6e38eb2d-4e22-45fc-80d0-b42de35cdbc3"
+        "e0ee3467-9404-42d8-9e51-057894c4555c"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:51:57.804298+00:00",
-      "last_successful_scan": "2026-11-19T22:51:57.804298+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:00:55.973183+00:00",
+      "last_successful_scan": "2026-11-19T23:00:55.973183+00:00"
     },
     "block": {
       "consecutive_failures": 0,
@@ -283623,8 +283637,8 @@
         "5405190008",
         "5446157008"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:52:45.868234+00:00",
-      "last_successful_scan": "2026-11-19T22:52:45.868234+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:01:46.294505+00:00",
+      "last_successful_scan": "2026-11-19T23:01:46.294505+00:00"
     },
     "bloomberg": {
       "consecutive_failures": 0,
@@ -283969,8 +283983,8 @@
         "13711",
         "12444"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:52:33.837373+00:00",
-      "last_successful_scan": "2026-11-19T22:52:33.837373+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:01:37.519740+00:00",
+      "last_successful_scan": "2026-11-19T23:01:37.519740+00:00"
     },
     "coinbase": {
       "consecutive_failures": 0,
@@ -284232,8 +284246,8 @@
         "8072054",
         "8177619"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:52:46.630546+00:00",
-      "last_successful_scan": "2026-11-19T22:52:46.630546+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:01:46.810437+00:00",
+      "last_successful_scan": "2026-11-19T23:01:46.810437+00:00"
     },
     "databricks": {
       "consecutive_failures": 0,
@@ -285141,8 +285155,8 @@
         "8578144002",
         "8943772002"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:53:19.227323+00:00",
-      "last_successful_scan": "2026-11-19T22:53:19.227323+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:02:10.060747+00:00",
+      "last_successful_scan": "2026-11-19T23:02:10.060747+00:00"
     },
     "datadog": {
       "consecutive_failures": 0,
@@ -285529,8 +285543,8 @@
         "8346246",
         "8243782"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:52:43.546110+00:00",
-      "last_successful_scan": "2026-11-19T22:52:43.546110+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:01:44.834928+00:00",
+      "last_successful_scan": "2026-11-19T23:01:44.834928+00:00"
     },
     "intuit": {
       "consecutive_failures": 0,
@@ -286148,8 +286162,8 @@
         "87369441728",
         "87369441712"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:53:14.368791+00:00",
-      "last_successful_scan": "2026-11-19T22:53:14.368791+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:02:06.910107+00:00",
+      "last_successful_scan": "2026-11-19T23:02:06.910107+00:00"
     },
     "meta": {
       "consecutive_failures": 0,
@@ -286157,7 +286171,7 @@
       "last_error_code": "rate_limited",
       "last_error_message": "429 from https://www.metacareers.com/api/graphql/",
       "last_failure_at": "2026-10-04T15:11:22.033873+00:00",
-      "last_successful_job_count": 1363,
+      "last_successful_job_count": 1361,
       "last_successful_job_ids": [
         "29481973694788756",
         "1816359589697168",
@@ -286221,7 +286235,6 @@
         "1077470204836425",
         "1467868595268107",
         "1061795906099278",
-        "1727440505572625",
         "2374839409720164",
         "1520776409874660",
         "4263630903853943",
@@ -287383,7 +287396,6 @@
         "1064155186370895",
         "1102235062706868",
         "1278346834421210",
-        "2124915178151233",
         "1472926611260362",
         "927037673177396",
         "1069382442303334",
@@ -287523,17 +287535,17 @@
         "2133495827507055",
         "26024270537191968"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:53:16.584013+00:00",
-      "last_successful_scan": "2026-11-19T22:53:16.584013+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:02:08.362508+00:00",
+      "last_successful_scan": "2026-11-19T23:02:08.362508+00:00"
     },
     "microsoft": {
       "consecutive_failures": 0,
-      "consecutive_reconciliation_failures": 4,
+      "consecutive_reconciliation_failures": 5,
       "last_error_code": "rate_limited",
       "last_error_message": "429 from https://apply.careers.microsoft.com/api/pcsx/search",
       "last_failure_at": "2026-11-14T19:52:08.872760+00:00",
-      "last_reconciliation_error": "Microsoft advertised total changed from 2410 to 2412 at start=8",
-      "last_reconciliation_failure_at": "2026-11-19T22:52:42.255764+00:00",
+      "last_reconciliation_error": "Microsoft advertised total changed from 2413 to 2412 at start=8",
+      "last_reconciliation_failure_at": "2026-11-19T23:01:44.034216+00:00",
       "last_successful_job_count": 2407,
       "last_successful_job_ids": [
         "1970393557075107",
@@ -289950,12 +289962,12 @@
     },
     "netflix": {
       "consecutive_failures": 0,
-      "consecutive_reconciliation_failures": 3,
+      "consecutive_reconciliation_failures": 4,
       "last_error_code": "upstream_failure",
       "last_error_message": "HTTP 503 from https://explore.jobs.netflix.net/api/apply/v2/jobs",
       "last_failure_at": "2026-10-01T22:12:09.939816+00:00",
-      "last_reconciliation_error": "Netflix offset boundary shifted between start=32 and start=40",
-      "last_reconciliation_failure_at": "2026-11-19T22:53:25.128597+00:00",
+      "last_reconciliation_error": "Netflix advertised total changed from 445 to 446 at start=8",
+      "last_reconciliation_failure_at": "2026-11-19T23:02:17.623291+00:00",
       "last_successful_job_count": 445,
       "last_successful_job_ids": [
         "790298014263",
@@ -290581,8 +290593,8 @@
         "7a044182-7787-47cd-b8eb-18ebf5642ed4",
         "a8143379-6693-4046-b8cf-1528178d0f0f"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:53:25.721719+00:00",
-      "last_successful_scan": "2026-11-19T22:53:25.721719+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:02:17.958465+00:00",
+      "last_successful_scan": "2026-11-19T23:02:17.958465+00:00"
     },
     "ramp": {
       "consecutive_failures": 0,
@@ -290774,8 +290786,8 @@
         "df5e48f0-f7a0-4cf3-a85b-9d4bb070b0d7",
         "42fcee41-692f-4d0a-b04d-d7368357332a"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:53:26.510229+00:00",
-      "last_successful_scan": "2026-11-19T22:53:26.510229+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:02:18.445526+00:00",
+      "last_successful_scan": "2026-11-19T23:02:18.445526+00:00"
     },
     "rippling": {
       "consecutive_failures": 0,
@@ -291183,8 +291195,8 @@
         "05dbe419-d767-49bc-83d6-885ca67d8c7f",
         "c8fa1d3a-befb-4fa8-bdc9-712b1c553437"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:53:27.422983+00:00",
-      "last_successful_scan": "2026-11-19T22:53:27.422983+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:02:19.249129+00:00",
+      "last_successful_scan": "2026-11-19T23:02:19.249129+00:00"
     },
     "robinhood": {
       "consecutive_failures": 0,
@@ -291358,8 +291370,8 @@
         "8289855",
         "8177444"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:52:45.163149+00:00",
-      "last_successful_scan": "2026-11-19T22:52:45.163149+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:01:45.832553+00:00",
+      "last_successful_scan": "2026-11-19T23:01:45.832553+00:00"
     },
     "snowflake": {
       "consecutive_failures": 0,
@@ -291746,8 +291758,8 @@
         "9dfe3597-a930-4aae-8b3c-acd2863df01f",
         "2995e87f-f7a9-445c-b2fa-ef0d90aa03ba"
       ],
-      "last_successful_reconciliation": "2026-11-19T22:52:44.557094+00:00",
-      "last_successful_scan": "2026-11-19T22:52:44.557094+00:00"
+      "last_successful_reconciliation": "2026-11-19T23:01:45.455645+00:00",
+      "last_successful_scan": "2026-11-19T23:01:45.455645+00:00"
     }
   },
   "version": 1
